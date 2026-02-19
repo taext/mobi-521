@@ -1,0 +1,22 @@
+[package]
+name = "mobi521-core"
+version = "0.21.0"
+edition = "2021"
+
+[dependencies]
+p521            = { version = "0.13", features = ["ecdh", "arithmetic", "ecdsa"] }
+elliptic-curve  = { workspace = true }
+hkdf            = { workspace = true }
+sha2            = { workspace = true }
+chacha20poly1305 = { workspace = true }
+bech32          = { workspace = true }
+base64ct        = { workspace = true }
+rand            = { workspace = true }
+rand_core       = { workspace = true }
+thiserror       = { workspace = true }
+zeroize         = { workspace = true }
+
+# getrandom is a transitive dep; WASM builds need the js feature.
+# The wasm crate activates it; native builds use the OS backend.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }

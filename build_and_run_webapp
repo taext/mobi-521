@@ -1,0 +1,1 @@
+cargo build --release && cargo check && wasm-pack build crates/wasm --target web --out-dir ../../web/pkg && docker build -f Dockerfile.web -t mobi521-web . && docker run --rm -p 8080:80 -p 8443:443 mobi521-web

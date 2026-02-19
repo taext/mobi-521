@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mobi-521 — P-521 Encryption</title>
+  <style>
+    /* ── tokens ──────────────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0f1117;
+      --surface:     #161b22;
+      --surface2:    #1c2128;
+      --border:      #2d333b;
+      --border-soft: #21262d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --accent:      #4493f8;
+      --accent-dim:  #1b3a6b;
+      --green:       #3fb950;
+      --green-bg:    #0d2416;
+      --green-border:#1f4a2a;
+      --red:         #f78166;
+      --red-bg:      #2d1216;
+      --red-border:  #5c1c1c;
+      --shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+      --radius:      8px;
+      --radius-sm:   6px;
+      --transition:  0.2s ease;
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f7fa;
+      --surface:     #ffffff;
+      --surface2:    #eef1f5;
+      --border:      #d0d7de;
+      --border-soft: #e4e8ed;
+      --text:        #1a1f27;
+      --text-muted:  #6a737d;
+      --accent:      #0969da;
+      --accent-dim:  #dbeafe;
+      --green:       #1a7f37;
+      --green-bg:    #dafbe1;
+      --green-border:#96d6a0;
+      --red:         #b91c1c;
+      --red-bg:      #fee2e2;
+      --red-border:  #fca5a5;
+      --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* ── reset ───────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── base ────────────────────────────────────────────────────────────── */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 2.5rem 1rem 4rem;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── layout ──────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ── theme toggle ────────────────────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0.35rem 0.65rem;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition),
+                  color var(--transition), transform 0.1s;
+      z-index: 100;
+      line-height: 1;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* ── header ──────────────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-img {
+      height: 180px;
+      width: auto;
+      margin-bottom: 0.5rem;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .tagline {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .tagline span {
+      display: inline-block;
+      margin: 0 0.3rem;
+      opacity: 0.5;
+    }
+
+    /* ── card ────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: background var(--transition), border-color var(--transition),
+                  box-shadow var(--transition);
+    }
+
+    /* ── tabs ────────────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 0.75rem 1.5rem;
+      letter-spacing: 0.01em;
+      transition: color var(--transition), border-color var(--transition),
+                  background var(--transition);
+      position: relative;
+      bottom: -1px;
+    }
+
+    .tab-btn:hover { color: var(--text); background: var(--surface); }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--surface);
+    }
+
+    /* ── panel ───────────────────────────────────────────────────────────── */
+    .panel {
+      display: none;
+      padding: 1.75rem;
+    }
+
+    .panel.active { display: block; }
+
+    /* ── form elements ───────────────────────────────────────────────────── */
+    .field { margin-bottom: 1.1rem; }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      padding: 0.6rem 0.8rem;
+      resize: vertical;
+      transition: border-color var(--transition), box-shadow var(--transition),
+                  background var(--transition);
+    }
+
+    input[type="text"] { font-family: inherit; font-size: 0.83rem; }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    textarea { min-height: 96px; }
+    textarea.out { min-height: 110px; color: var(--green); }
+
+    /* ── buttons ─────────────────────────────────────────────────────────── */
+    .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+    button {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.45rem 0.9rem;
+      transition: background var(--transition), border-color var(--transition),
+                  box-shadow var(--transition), transform 0.1s;
+    }
+
+    button:hover {
+      background: var(--border);
+      border-color: var(--accent);
+    }
+
+    button:active { transform: scale(0.98); }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      padding: 0.5rem 1.2rem;
+    }
+
+    button.primary:hover {
+      filter: brightness(1.1);
+      border-color: var(--accent);
+    }
+
+    button.ghost {
+      background: none;
+      border-color: transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    button.ghost:hover {
+      color: var(--text);
+      background: var(--surface2);
+      border-color: var(--border);
+    }
+
+    /* ── key boxes ───────────────────────────────────────────────────────── */
+    .key-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 0.6rem;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .key-box:last-of-type { margin-bottom: 0; }
+
+    .key-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 0.5rem;
+    }
+
+    .key-val {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      word-break: break-all;
+      color: var(--green);
+      margin-bottom: 0.65rem;
+      line-height: 1.5;
+    }
+
+    .key-box.private .key-val { color: var(--red); }
+
+    /* ── file drop ───────────────────────────────────────────────────────── */
+    .file-drop {
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color var(--transition), color var(--transition),
+                  background var(--transition);
+      position: relative;
+    }
+
+    .file-drop:hover, .file-drop.drag-over {
+      border-color: var(--accent);
+      color: var(--text);
+      background: var(--accent-dim);
+    }
+
+    .file-drop input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .file-name {
+      font-size: 0.72rem;
+      font-family: 'Courier New', monospace;
+      color: var(--accent);
+      margin-top: 0.35rem;
+      min-height: 1em;
+    }
+
+    /* ── divider ─────────────────────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 0.9rem 0;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── status ──────────────────────────────────────────────────────────── */
+    .status {
+      font-size: 0.78rem;
+      padding: 0.55rem 0.8rem;
+      border-radius: var(--radius-sm);
+      margin-top: 0.8rem;
+      display: none;
+      font-weight: 500;
+    }
+
+    .status.ok {
+      display: block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .status.err {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    /* ── output section ──────────────────────────────────────────────────── */
+    .out-section {
+      margin-top: 1.1rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--border-soft);
+    }
+
+    /* ── loading ─────────────────────────────────────────────────────────── */
+    .loading {
+      display: none;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+
+    .loading.visible { display: block; }
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-btn" title="Toggle light/dark mode">🌙</button>
+
+<div class="container">
+
+  <header>
+    <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
+    <p class="tagline">
+      v0.21 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
+    </p>
+  </header>
+
+  <div class="card">
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="keygen">Key generation</button>
+      <button class="tab-btn" data-tab="encrypt">Encrypt</button>
+      <button class="tab-btn" data-tab="decrypt">Decrypt</button>
+      <button class="tab-btn" data-tab="sign">Sign & Verify</button>
+    </div>
+
+    <!-- ── KEYGEN ───────────────────────────────────────────────────────── -->
+    <section id="tab-keygen" class="panel active">
+      <div class="loading" id="kg-loading">Generating key pair…</div>
+
+      <div id="kg-result" style="display:none">
+        <div class="key-box">
+          <div class="key-label">Public key — share this with senders</div>
+          <div class="key-val" id="kg-pub"></div>
+          <button onclick="copyText('kg-pub', this)">Copy public key</button>
+        </div>
+        <div class="key-box private" style="margin-top:0.6rem">
+          <div class="key-label">Private key — keep this secret</div>
+          <div class="key-val" id="kg-sec"></div>
+          <div class="row">
+            <button onclick="copyText('kg-sec', this)">Copy private key</button>
+            <button onclick="downloadKey()">Download identity file</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="status" id="kg-status"></div>
+
+      <div style="margin-top:1.1rem">
+        <button class="primary" onclick="doKeygen()">Generate new key pair</button>
+      </div>
+    </section>
+
+    <!-- ── ENCRYPT ─────────────────────────────────────────────────────── -->
+    <section id="tab-encrypt" class="panel">
+      <div class="field">
+        <label>Recipient public key</label>
+        <input type="text" id="enc-pubkey" placeholder="mobi521…" spellcheck="false" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Plaintext</label>
+        <textarea id="enc-text" placeholder="Type or paste message here…"></textarea>
+      </div>
+
+      <div class="divider">or upload a file</div>
+
+      <div class="field">
+        <div class="file-drop" id="enc-drop">
+          <input type="file" id="enc-file" onchange="fileChosen('enc-file','enc-fname','enc-text',true)">
+          Drop file here or click to browse
+        </div>
+        <div class="file-name" id="enc-fname"></div>
+      </div>
+
+      <div class="row">
+        <button class="primary" onclick="doEncrypt()">Encrypt</button>
+        <button class="ghost" onclick="clearEnc()">Clear</button>
+      </div>
+
+      <div class="status" id="enc-status"></div>
+
+      <div class="out-section" id="enc-out-wrap" style="display:none">
+        <div class="field">
+          <label>Encrypted output — ASCII armor</label>
+          <textarea class="out" id="enc-out" readonly></textarea>
+        </div>
+        <div class="row">
+          <button onclick="copyText('enc-out', this)">Copy</button>
+          <button class="primary" onclick="downloadBlob(encBlob,'encrypted.mobi521')">Download .mobi521</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DECRYPT ─────────────────────────────────────────────────────── -->
+    <section id="tab-decrypt" class="panel">
+      <div class="field">
+        <label>Private key</label>
+        <input type="text" id="dec-privkey" placeholder="MOBI521-SECRET-KEY-…" spellcheck="false" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Ciphertext — paste armored text</label>
+        <textarea id="dec-text" placeholder="Paste armored ciphertext…"></textarea>
+      </div>
+
+      <div class="divider">or upload a file</div>
+
+      <div class="field">
+        <div class="file-drop" id="dec-drop">
+          <input type="file" id="dec-file" accept=".mobi521" onchange="fileChosen('dec-file','dec-fname','dec-text',false)">
+          Drop .mobi521 file here or click to browse
+        </div>
+        <div class="file-name" id="dec-fname"></div>
+      </div>
+
+      <div class="row">
+        <button class="primary" onclick="doDecrypt()">Decrypt</button>
+        <button class="ghost" onclick="clearDec()">Clear</button>
+      </div>
+
+      <div class="status" id="dec-status"></div>
+
+      <div class="out-section" id="dec-out-wrap" style="display:none">
+        <div class="field">
+          <label>Decrypted output</label>
+          <textarea class="out" id="dec-out" readonly></textarea>
+        </div>
+        <div class="row">
+          <button onclick="copyText('dec-out', this)">Copy</button>
+          <button class="primary" onclick="downloadBlob(decBlob,'decrypted.bin')">Download</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SIGN & VERIFY ────────────────────────────────────────────────── -->
+    <section id="tab-sign" class="panel">
+
+      <!-- Sign -->
+      <div class="field">
+        <label>Private key</label>
+        <input type="text" id="sig-privkey" placeholder="MOBI521-SECRET-KEY-…" spellcheck="false" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Message to sign</label>
+        <textarea id="sig-message" placeholder="Type or paste the message to sign…"></textarea>
+      </div>
+
+      <div class="row">
+        <button class="primary" onclick="doSign()">Sign</button>
+        <button class="ghost" onclick="clearSign()">Clear</button>
+      </div>
+
+      <div class="status" id="sig-status"></div>
+
+      <div class="out-section" id="sig-out-wrap" style="display:none">
+        <div class="field">
+          <label>Signature — base64 (ECDSA-P521-SHA512)</label>
+          <textarea class="out" id="sig-out" readonly></textarea>
+        </div>
+        <div class="row">
+          <button onclick="copyText('sig-out', this)">Copy signature</button>
+        </div>
+      </div>
+
+      <div class="divider" style="margin-top:1.5rem">verify</div>
+
+      <!-- Verify -->
+      <div class="field">
+        <label>Signer's public key</label>
+        <input type="text" id="vfy-pubkey" placeholder="mobi521…" spellcheck="false" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label>Message (same as what was signed)</label>
+        <textarea id="vfy-message" placeholder="Paste the original message…"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Signature (base64)</label>
+        <textarea id="vfy-sig" placeholder="Paste the base64 signature…" style="min-height:72px"></textarea>
+      </div>
+
+      <div class="row">
+        <button class="primary" onclick="doVerify()">Verify</button>
+        <button class="ghost" onclick="clearVerify()">Clear</button>
+      </div>
+
+      <div class="status" id="vfy-status"></div>
+
+    </section>
+
+  </div><!-- .card -->
+</div><!-- .container -->
+
+<!-- ── WASM init ─────────────────────────────────────────────────────────── -->
+<script type="module">
+  function wasmError(msg) {
+    document.getElementById('kg-loading').classList.remove('visible');
+    const s = document.getElementById('kg-status');
+    s.textContent = msg;
+    s.className = 'status err';
+  }
+
+  try {
+    const wasm = await import('./pkg/mobi521_wasm.js');
+    await wasm.default();   // init()
+    const required = ['keygen', 'encrypt', 'decrypt', 'sign', 'verify'];
+    const missing = required.filter(fn => typeof wasm[fn] !== 'function');
+    if (missing.length > 0) {
+      throw new Error(`stale WASM build — missing exports: ${missing.join(', ')}. Rebuild with wasm-pack.`);
+    }
+    window._wasm = {
+      keygen:  wasm.keygen,
+      encrypt: wasm.encrypt,
+      decrypt: wasm.decrypt,
+      sign:    wasm.sign,
+      verify:  wasm.verify,
+    };
+    window._wasmReady = true;
+    window.doKeygen();
+  } catch (e) {
+    wasmError('Could not load WASM: ' + (e.message || e) +
+              ' — run: wasm-pack build crates/wasm --target web --out-dir ../../web/pkg');
+  }
+</script>
+
+<script>
+  /* ── theme toggle ─────────────────────────────────────────────────────── */
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('theme-btn');
+  const saved = localStorage.getItem('mobi521-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  setTheme(saved);
+
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('mobi521-theme', t);
+  }
+
+  themeBtn.addEventListener('click', () =>
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  /* ── tabs ─────────────────────────────────────────────────────────────── */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  /* ── drag-over ────────────────────────────────────────────────────────── */
+  document.querySelectorAll('.file-drop').forEach(drop => {
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+    drop.addEventListener('drop',      () => drop.classList.remove('drag-over'));
+  });
+
+  /* ── state ────────────────────────────────────────────────────────────── */
+  let encBlob = null;
+  let decBlob = null;
+
+  /* ── helpers ──────────────────────────────────────────────────────────── */
+  function setStatus(id, msg, isErr) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = 'status ' + (isErr ? 'err' : 'ok');
+  }
+
+  function clearStatus(id) {
+    const el = document.getElementById(id);
+    el.className = 'status';
+    el.textContent = '';
+  }
+
+  function copyText(elId, btn) {
+    const el = document.getElementById(elId);
+    const text = el.textContent || el.value;
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      setTimeout(() => btn.textContent = orig, 1500);
+    });
+  }
+
+  function downloadBlob(blob, name) {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadKey() {
+    const pub = document.getElementById('kg-pub').textContent;
+    const sec = document.getElementById('kg-sec').textContent;
+    const text = `# mobi-521 identity file\n# public key: ${pub}\n${sec}\n`;
+    downloadBlob(new Blob([text], { type: 'text/plain' }), 'identity.mobi521key');
+  }
+
+  function fileChosen(inputId, fnameId, textareaId, asText) {
+    const file = document.getElementById(inputId).files[0];
+    if (!file) return;
+    document.getElementById(fnameId).textContent = file.name;
+    const reader = new FileReader();
+    if (asText) {
+      reader.onload = e => { document.getElementById(textareaId).value = e.target.result; };
+      reader.readAsText(file);
+    } else {
+      reader.onload = e => {
+        const bytes = new Uint8Array(e.target.result);
+        window._decFileBytes = bytes;
+        document.getElementById(textareaId).value = btoa(String.fromCharCode(...bytes));
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  }
+
+  /* ── keygen ───────────────────────────────────────────────────────────── */
+  window.doKeygen = function () {
+    clearStatus('kg-status');
+    document.getElementById('kg-result').style.display = 'none';
+    if (!window._wasmReady) {
+      // WASM not ready yet — module script will call us once it's loaded
+      document.getElementById('kg-loading').classList.add('visible');
+      return;
+    }
+    document.getElementById('kg-loading').classList.remove('visible');
+    try {
+      const kp = window._wasm.keygen();
+      document.getElementById('kg-pub').textContent = kp.publicKey;
+      document.getElementById('kg-sec').textContent = kp.privateKey;
+      document.getElementById('kg-result').style.display = 'block';
+    } catch (e) {
+      setStatus('kg-status', String(e), true);
+    }
+  };
+
+  /* ── wasm guard ───────────────────────────────────────────────────────── */
+  function needsWasm(statusId) {
+    if (!window._wasmReady) {
+      setStatus(statusId, 'WASM not loaded — rebuild with wasm-pack and hard-refresh (Ctrl+Shift+R).', true);
+      return true;
+    }
+    return false;
+  }
+
+  /* ── encrypt ──────────────────────────────────────────────────────────── */
+  window.doEncrypt = function () {
+    clearStatus('enc-status');
+    document.getElementById('enc-out-wrap').style.display = 'none';
+    if (needsWasm('enc-status')) return;
+    const pubkey = document.getElementById('enc-pubkey').value.trim();
+    const text   = document.getElementById('enc-text').value;
+    if (!pubkey) { setStatus('enc-status', 'Paste a recipient public key first.', true); return; }
+    if (!text)   { setStatus('enc-status', 'Nothing to encrypt.', true); return; }
+    try {
+      const armored = window._wasm.encrypt(pubkey, new TextEncoder().encode(text));
+      encBlob = new Blob([armored], { type: 'text/plain' });
+      document.getElementById('enc-out').value = armored;
+      document.getElementById('enc-out-wrap').style.display = 'block';
+      setStatus('enc-status', `Encrypted — ${armored.length} chars.`, false);
+    } catch (e) {
+      setStatus('enc-status', String(e), true);
+    }
+  };
+
+  window.clearEnc = function () {
+    ['enc-pubkey','enc-text','enc-out'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('enc-fname').textContent = '';
+    document.getElementById('enc-out-wrap').style.display = 'none';
+    clearStatus('enc-status');
+    encBlob = null;
+  };
+
+  /* ── decrypt ──────────────────────────────────────────────────────────── */
+  window.doDecrypt = function () {
+    clearStatus('dec-status');
+    document.getElementById('dec-out-wrap').style.display = 'none';
+    if (needsWasm('dec-status')) return;
+    const privkey = document.getElementById('dec-privkey').value.trim();
+    const textVal = document.getElementById('dec-text').value.trim();
+    if (!privkey) { setStatus('dec-status', 'Paste your private key first.', true); return; }
+    if (!textVal && !window._decFileBytes) {
+      setStatus('dec-status', 'No ciphertext provided.', true); return;
+    }
+    try {
+      let ctBytes;
+      if (window._decFileBytes) {
+        ctBytes = window._decFileBytes;
+      } else {
+        ctBytes = new TextEncoder().encode(textVal);
+      }
+      const ptBytes = window._wasm.decrypt(privkey, ctBytes);
+      decBlob = new Blob([ptBytes], { type: 'application/octet-stream' });
+      let display;
+      try {
+        display = new TextDecoder('utf-8', { fatal: true }).decode(ptBytes);
+      } catch {
+        const hex = Array.from(ptBytes.slice(0, 256))
+          .map(b => b.toString(16).padStart(2, '0')).join(' ');
+        display = `[binary — ${ptBytes.length} bytes]\n\n${hex}${ptBytes.length > 256 ? ' …' : ''}`;
+      }
+      document.getElementById('dec-out').value = display;
+      document.getElementById('dec-out-wrap').style.display = 'block';
+      setStatus('dec-status', `Decrypted — ${ptBytes.length} bytes.`, false);
+    } catch (e) {
+      setStatus('dec-status', String(e), true);
+    }
+  };
+
+  window.clearDec = function () {
+    ['dec-privkey','dec-text','dec-out'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('dec-fname').textContent = '';
+    document.getElementById('dec-out-wrap').style.display = 'none';
+    clearStatus('dec-status');
+    decBlob = null;
+    window._decFileBytes = null;
+  };
+
+  /* ── sign ─────────────────────────────────────────────────────────────── */
+  window.doSign = function () {
+    clearStatus('sig-status');
+    document.getElementById('sig-out-wrap').style.display = 'none';
+    if (needsWasm('sig-status')) return;
+    const privkey = document.getElementById('sig-privkey').value.trim();
+    const msg     = document.getElementById('sig-message').value;
+    if (!privkey) { setStatus('sig-status', 'Paste your private key first.', true); return; }
+    if (!msg)     { setStatus('sig-status', 'Nothing to sign.', true); return; }
+    try {
+      const sigB64 = window._wasm.sign(privkey, new TextEncoder().encode(msg));
+      document.getElementById('sig-out').value = sigB64;
+      document.getElementById('sig-out-wrap').style.display = 'block';
+      setStatus('sig-status', 'Message signed (ECDSA-P521-SHA512).', false);
+    } catch (e) {
+      setStatus('sig-status', String(e), true);
+    }
+  };
+
+  window.clearSign = function () {
+    ['sig-privkey','sig-message','sig-out'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('sig-out-wrap').style.display = 'none';
+    clearStatus('sig-status');
+  };
+
+  /* ── verify ───────────────────────────────────────────────────────────── */
+  window.doVerify = function () {
+    clearStatus('vfy-status');
+    if (needsWasm('vfy-status')) return;
+    const pubkey = document.getElementById('vfy-pubkey').value.trim();
+    const msg    = document.getElementById('vfy-message').value;
+    const sigB64 = document.getElementById('vfy-sig').value.trim();
+    if (!pubkey) { setStatus('vfy-status', 'Paste the signer\'s public key first.', true); return; }
+    if (!msg)    { setStatus('vfy-status', 'Paste the original message.', true); return; }
+    if (!sigB64) { setStatus('vfy-status', 'Paste the base64 signature.', true); return; }
+    try {
+      const ok = window._wasm.verify(pubkey, new TextEncoder().encode(msg), sigB64);
+      if (ok) {
+        setStatus('vfy-status', '✓ Signature is valid.', false);
+      } else {
+        setStatus('vfy-status', '✗ Signature is NOT valid.', true);
+      }
+    } catch (e) {
+      setStatus('vfy-status', '✗ ' + String(e), true);
+    }
+  };
+
+  window.clearVerify = function () {
+    ['vfy-pubkey','vfy-message','vfy-sig'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    clearStatus('vfy-status');
+  };
+</script>
+</body>
+</html>

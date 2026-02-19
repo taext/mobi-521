@@ -1,0 +1,7 @@
+target/
+web/pkg/
+*.mobi521
+*.txt
+*.md
+flake.*
+.git/
