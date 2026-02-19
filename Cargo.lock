@@ -390,7 +390,7 @@ checksum = "6800badb6cb2082ffd7b6a67e6125bb39f18782f793520caee8cb8846be06112"
 
 [[package]]
 name = "mobi521"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "clap",
  "mobi521-core",
@@ -398,7 +398,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-core"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "base64ct",
  "bech32",
@@ -416,7 +416,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-wasm"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "console_error_panic_hook",
  "getrandom",

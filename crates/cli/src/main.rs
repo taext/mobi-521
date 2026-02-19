@@ -30,9 +30,10 @@ enum Command {
 
     /// Encrypt a file or stdin for a recipient
     Encrypt {
-        /// Recipient's public key (mobi521...)
+        /// Recipient's public key (mobi521...). If omitted, uses the key in
+        /// ~/.config/mobi521/default-recipient (or $XDG_CONFIG_HOME/mobi521/default-recipient).
         #[arg(short = 'r', long, value_name = "PUBKEY")]
-        recipient: String,
+        recipient: Option<String>,
 
         /// Write ciphertext to FILE (default: stdout)
         #[arg(short = 'o', long, value_name = "FILE")]
@@ -133,8 +134,12 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             no_armor,
             input,
         } => {
+            let pubkey = match recipient {
+                Some(r) => r,
+                None => default_recipient()?,
+            };
             let plaintext = read_input(input)?;
-            let ciphertext = mobi521_core::encrypt(&recipient, &plaintext)?;
+            let ciphertext = mobi521_core::encrypt(&pubkey, &plaintext)?;
             if no_armor {
                 write_output(output, &ciphertext)?;
             } else {
@@ -225,6 +230,33 @@ fn resolve_sig(s: &str) -> Result<String, Box<dyn std::error::Error>> {
     } else {
         Ok(s.to_string())
     }
+}
+
+/// Return the default recipient public key from ~/.config/mobi521/default-recipient
+/// (or $XDG_CONFIG_HOME/mobi521/default-recipient).
+fn default_recipient() -> Result<String, Box<dyn std::error::Error>> {
+    let config_dir = if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
+        PathBuf::from(xdg).join("mobi521")
+    } else {
+        let home = std::env::var("HOME")
+            .map_err(|_| "HOME environment variable not set")?;
+        PathBuf::from(home).join(".config").join("mobi521")
+    };
+    let path = config_dir.join("default-recipient");
+    if !path.exists() {
+        return Err(format!(
+            "no --recipient given and no default recipient found\n\
+             hint: put your public key in {}",
+            path.display()
+        )
+        .into());
+    }
+    let contents = fs::read_to_string(&path)?;
+    let key = contents.trim().to_string();
+    if key.is_empty() {
+        return Err(format!("default-recipient file is empty: {}", path.display()).into());
+    }
+    Ok(key)
 }
 
 /// Resolve an identity argument: either a path to a key file or a raw key string.
