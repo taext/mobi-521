@@ -61,3 +61,68 @@ pub fn dearmor_str(text: &str) -> Result<Vec<u8>, Error> {
 pub fn is_armored(data: &[u8]) -> bool {
     data.starts_with(HEADER.as_bytes())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn armor_dearmor_roundtrip() {
+        let data = b"hello world this is test data 1234567890";
+        let armored = armor(data);
+        let recovered = dearmor(armored.as_bytes()).unwrap();
+        assert_eq!(data.as_slice(), recovered.as_slice());
+    }
+
+    #[test]
+    fn armor_dearmor_empty() {
+        let armored = armor(b"");
+        let recovered = dearmor(armored.as_bytes()).unwrap();
+        assert!(recovered.is_empty());
+    }
+
+    #[test]
+    fn armor_dearmor_binary_data() {
+        let data: Vec<u8> = (0u8..=255).collect();
+        let armored = armor(&data);
+        let recovered = dearmor(armored.as_bytes()).unwrap();
+        assert_eq!(data, recovered);
+    }
+
+    #[test]
+    fn armored_output_has_correct_header_footer() {
+        let armored = armor(b"test");
+        assert!(armored.starts_with(HEADER));
+        assert!(armored.trim_end().ends_with(FOOTER));
+    }
+
+    #[test]
+    fn is_armored_detects_armored_data() {
+        let armored = armor(b"test");
+        assert!(is_armored(armored.as_bytes()));
+    }
+
+    #[test]
+    fn is_armored_rejects_raw_data() {
+        assert!(!is_armored(b"raw binary data"));
+        assert!(!is_armored(b""));
+        assert!(!is_armored(b"age-encryption.org/age-512-v2"));
+    }
+
+    #[test]
+    fn dearmor_bad_header_returns_error() {
+        let bad = b"-----BEGIN SOMETHING ELSE-----\nZGF0YQ==\n-----END SOMETHING ELSE-----\n";
+        assert!(dearmor(bad).is_err());
+    }
+
+    #[test]
+    fn dearmor_missing_footer_returns_error() {
+        let bad = format!("{}\nZGF0YQ==\n", HEADER);
+        assert!(dearmor(bad.as_bytes()).is_err());
+    }
+
+    #[test]
+    fn dearmor_empty_input_returns_error() {
+        assert!(dearmor(b"").is_err());
+    }
+}

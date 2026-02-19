@@ -80,3 +80,70 @@ pub fn decode_secret_key(s: &str) -> Result<SecretKey, Error> {
         Vec::<u8>::from_base32(&data).map_err(|e| Error::InvalidKey(e.to_string()))?;
     SecretKey::from_slice(&bytes).map_err(|e| Error::InvalidKey(e.to_string()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn public_key_encode_decode_roundtrip() {
+        let kp = KeyPair::generate();
+        let encoded = encode_public_key(&kp.public);
+        let decoded = decode_public_key(&encoded).unwrap();
+        assert_eq!(
+            kp.public.to_encoded_point(true).as_bytes(),
+            decoded.to_encoded_point(true).as_bytes()
+        );
+    }
+
+    #[test]
+    fn secret_key_encode_decode_roundtrip() {
+        let kp = KeyPair::generate();
+        let encoded = encode_secret_key(&kp.secret);
+        let decoded = decode_secret_key(&encoded).unwrap();
+        assert_eq!(
+            kp.secret.to_bytes().as_slice(),
+            decoded.to_bytes().as_slice()
+        );
+    }
+
+    #[test]
+    fn decode_public_key_rejects_secret_key_hrp() {
+        let kp = KeyPair::generate();
+        let sec_encoded = encode_secret_key(&kp.secret);
+        let err = decode_public_key(&sec_encoded).unwrap_err();
+        assert!(err.to_string().contains("wrong HRP"));
+    }
+
+    #[test]
+    fn decode_secret_key_rejects_public_key_hrp() {
+        let kp = KeyPair::generate();
+        let pub_encoded = encode_public_key(&kp.public);
+        let err = decode_secret_key(&pub_encoded).unwrap_err();
+        assert!(err.to_string().contains("wrong HRP"));
+    }
+
+    #[test]
+    fn decode_public_key_case_insensitive() {
+        let kp = KeyPair::generate();
+        let encoded = encode_public_key(&kp.public);
+        decode_public_key(&encoded.to_uppercase()).unwrap();
+    }
+
+    #[test]
+    fn secret_key_is_encoded_uppercase() {
+        let kp = KeyPair::generate();
+        let encoded = encode_secret_key(&kp.secret);
+        assert_eq!(encoded, encoded.to_uppercase());
+    }
+
+    #[test]
+    fn derived_public_key_matches_keypair() {
+        let kp = KeyPair::generate();
+        let derived = kp.secret.public_key();
+        assert_eq!(
+            kp.public.to_encoded_point(true).as_bytes(),
+            derived.to_encoded_point(true).as_bytes()
+        );
+    }
+}
