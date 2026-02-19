@@ -18,7 +18,7 @@ pub struct KeyPairResult {
 
 /// Generate a P-521 key pair.
 ///
-/// Returns a JS object: `{ publicKey: "age521...", privateKey: "AGE-SECRET-KEY-521-..." }`
+/// Returns a JS object: `{ publicKey: "mobi521...", privateKey: "MOBI521-SECRET-KEY-..." }`
 #[wasm_bindgen]
 pub fn keygen() -> Result<JsValue, JsValue> {
     let kp = KeyPair::generate();

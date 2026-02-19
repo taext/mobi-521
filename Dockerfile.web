@@ -4,7 +4,9 @@ FROM rust:1.85-slim AS wasm-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
  && rm -rf /var/lib/apt/lists/* \
- && curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+ && curl -fsSL https://github.com/rustwasm/wasm-pack/releases/download/v0.14.0/wasm-pack-v0.14.0-x86_64-unknown-linux-musl.tar.gz \
+    | tar xz --strip-components=1 -C /usr/local/bin \
+      wasm-pack-v0.14.0-x86_64-unknown-linux-musl/wasm-pack
 
 WORKDIR /build
 
