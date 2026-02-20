@@ -23,11 +23,14 @@ The STREAM chunked construction means truncated ciphertexts always fail authenti
 ### With Nix (recommended)
 
 ```bash
-nix develop        # enter dev shell
+nix develop        # enter dev shell (includes wl-clipboard for Wayland)
 cargo build --release -p mobi521
+./test_clipboard.sh auto  # run clipboard tests
 ```
 
 The binary ends up at `target/release/mobi521`.
+
+**Note:** On Wayland systems, clipboard support requires `wl-clipboard` to be installed. The Nix dev shell includes this automatically.
 
 ### With Docker (CLI)
 
@@ -72,6 +75,11 @@ mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.mobi521
 
 # From stdin
 echo "secret" | mobi521 encrypt -r mobi521... -o encrypted.mobi521
+
+# From clipboard (no input file specified)
+# Copy text to clipboard, then:
+mobi521 encrypt -r mobi521...
+# Encrypted output is now in clipboard
 ```
 
 If `-r` is omitted, mobi-521 looks for a default recipient key in:
@@ -100,7 +108,29 @@ mobi521 decrypt -i identity.txt encrypted.mobi521
 
 # Using a raw key string
 mobi521 decrypt -i "MOBI521-SECRET-KEY-..." encrypted.mobi521 -o plaintext.txt
+
+# From clipboard (no input file specified)
+# Copy encrypted text to clipboard, then:
+mobi521 decrypt -i identity.txt
+# Decrypted plaintext is now in clipboard
 ```
+
+### Clipboard Integration
+
+mobi-521 automatically detects and uses the system clipboard when no input file is specified:
+
+| Input | Output | Behavior |
+|-------|--------|----------|
+| No file (clipboard/stdin) | No `-o` flag | **Clipboard → Clipboard** (or stdin → clipboard if clipboard unavailable) |
+| File specified | No `-o` flag | **File → stdout** (clipboard not used) |
+| Any input | `-o` specified | **→ File** |
+
+**Platform support:**
+- **Wayland:** Uses `wl-clipboard` (`wl-copy` / `wl-paste`)
+- **X11:** Uses native clipboard via `arboard`
+- **macOS / Windows:** Uses native clipboard via `arboard`
+
+**Automatic fallback:** If clipboard is unavailable, automatically falls back to stdin/stdout.
 
 ### Sign
 

@@ -22,11 +22,17 @@
             pkgs.pkg-config
             pkgs.openssl
             pkgs.python3
+            pkgs.wl-clipboard  # Wayland clipboard tool
+            pkgs.libxkbcommon  # Wayland support
+            pkgs.wayland       # Wayland libraries
           ];
           shellHook = ''
+            export LD_LIBRARY_PATH="${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
             echo "mobi-521 dev shell"
             echo "  cargo build          -- native CLI"
             echo "  cargo check          -- type-check all crates"
+            echo "  # Clipboard test:"
+            echo "  echo 'test' | wl-copy && ./target/release/mobi521 encrypt"
             echo "  wasm-pack build crates/wasm --target web --out-dir ../../web/pkg"
             echo "  # Web UI:"
             echo "  docker build -f Dockerfile.web -t mobi521-web ."

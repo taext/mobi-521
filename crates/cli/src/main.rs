@@ -6,6 +6,7 @@ use std::{
     path::PathBuf,
     process,
 };
+use arboard::Clipboard;
 
 #[derive(Parser)]
 #[command(
@@ -138,13 +139,14 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 Some(r) => r,
                 None => default_recipient()?,
             };
+            let use_clipboard = input.is_none();
             let plaintext = read_input(input)?;
             let ciphertext = mobi521_core::encrypt(&pubkey, &plaintext)?;
             if no_armor {
-                write_output(output, &ciphertext)?;
+                write_output(output, &ciphertext, use_clipboard)?;
             } else {
                 let armored = mobi521_core::armor::armor(&ciphertext);
-                write_output(output, armored.as_bytes())?;
+                write_output(output, armored.as_bytes(), use_clipboard)?;
             }
         }
 
@@ -155,9 +157,10 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         } => {
             // Accept either a path to a key file, or the raw key string
             let secret_key = resolve_identity(&identity)?;
+            let use_clipboard = input.is_none();
             let ciphertext = read_input(input)?;
             let plaintext = mobi521_core::decrypt(&secret_key, &ciphertext)?;
-            write_output(output, &plaintext)?;
+            write_output(output, &plaintext, use_clipboard)?;
         }
 
         Command::Sign {
@@ -166,10 +169,11 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             input,
         } => {
             let secret_key = resolve_identity(&identity)?;
+            let use_clipboard = input.is_none();
             let message = read_input(input)?;
             let sig = mobi521_core::sign(&secret_key, &message)?;
-            let to_stdout = output.is_none();
-            write_output(output, sig.as_bytes())?;
+            let to_stdout = output.is_none() && !use_clipboard;
+            write_output(output, sig.as_bytes(), use_clipboard)?;
             if to_stdout {
                 io::stdout().write_all(b"\n")?;
             }
@@ -198,26 +202,26 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Read all bytes from a file or stdin.
+/// Read all bytes from a file, clipboard, or stdin.
 fn read_input(path: Option<PathBuf>) -> io::Result<Vec<u8>> {
     match path {
         Some(p) => fs::read(p),
-        None => {
-            if std::io::IsTerminal::is_terminal(&io::stdin()) {
-                eprintln!("reading from stdin — paste input then press Ctrl+D");
-            }
-            let mut buf = Vec::new();
-            io::stdin().read_to_end(&mut buf)?;
-            Ok(buf)
-        }
+        None => read_from_clipboard_or_stdin(),
     }
 }
 
-/// Write bytes to a file or stdout.
-fn write_output(path: Option<PathBuf>, data: &[u8]) -> io::Result<()> {
+/// Write bytes to a file, clipboard (if no input file), or stdout.
+/// use_clipboard: true if clipboard should be tried (when no input file was given)
+fn write_output(path: Option<PathBuf>, data: &[u8], use_clipboard: bool) -> io::Result<()> {
     match path {
         Some(p) => fs::write(p, data),
-        None => io::stdout().write_all(data),
+        None => {
+            if use_clipboard {
+                write_to_clipboard_or_stdout(data)
+            } else {
+                io::stdout().write_all(data)
+            }
+        }
     }
 }
 
@@ -275,5 +279,135 @@ fn resolve_identity(s: &str) -> Result<String, Box<dyn std::error::Error>> {
     } else {
         // Treat as a raw key string
         Ok(s.to_string())
+    }
+}
+
+/// Try to read from clipboard using wl-paste (Wayland).
+fn try_wl_paste() -> io::Result<Vec<u8>> {
+    match process::Command::new("wl-paste").output() {
+        Ok(output) if output.status.success() && !output.stdout.is_empty() => {
+            eprintln!("reading from clipboard via wl-paste ({} bytes)", output.stdout.len());
+            Ok(output.stdout)
+        }
+        _ => Err(io::Error::new(
+            io::ErrorKind::Other,
+            "wl-paste failed or clipboard empty",
+        )),
+    }
+}
+
+/// Try to read from clipboard, fall back to stdin if clipboard unavailable.
+fn read_from_clipboard_or_stdin() -> io::Result<Vec<u8>> {
+    // First try arboard (works on X11, macOS, Windows)
+    match Clipboard::new() {
+        Ok(mut clipboard) => {
+            match clipboard.get_text() {
+                Ok(text) => {
+                    if text.is_empty() {
+                        // Try wl-paste on Wayland
+                        if std::env::var("WAYLAND_DISPLAY").is_ok() {
+                            if let Ok(data) = try_wl_paste() {
+                                return Ok(data);
+                            }
+                        }
+                        eprintln!("clipboard is empty, falling back to stdin");
+                        read_from_stdin()
+                    } else {
+                        eprintln!("reading from clipboard ({} bytes)", text.len());
+                        Ok(text.into_bytes())
+                    }
+                }
+                Err(_) => {
+                    // arboard failed, try wl-paste on Wayland
+                    if std::env::var("WAYLAND_DISPLAY").is_ok() {
+                        if let Ok(data) = try_wl_paste() {
+                            return Ok(data);
+                        }
+                    }
+                    eprintln!("clipboard doesn't contain text (may be image/binary data), falling back to stdin");
+                    read_from_stdin()
+                }
+            }
+        }
+        Err(_) => {
+            // arboard failed to initialize, try wl-paste on Wayland
+            if std::env::var("WAYLAND_DISPLAY").is_ok() {
+                if let Ok(data) = try_wl_paste() {
+                    return Ok(data);
+                }
+            }
+            eprintln!("failed to access clipboard, falling back to stdin");
+            read_from_stdin()
+        }
+    }
+}
+
+/// Read from stdin.
+fn read_from_stdin() -> io::Result<Vec<u8>> {
+    if std::io::IsTerminal::is_terminal(&io::stdin()) {
+        eprintln!("reading from stdin — paste input then press Ctrl+D");
+    }
+    let mut buf = Vec::new();
+    io::stdin().read_to_end(&mut buf)?;
+    Ok(buf)
+}
+
+/// Try to write to clipboard using wl-copy (Wayland).
+fn try_wl_copy(data: &[u8]) -> io::Result<()> {
+    use std::io::Write;
+
+    let mut child = process::Command::new("wl-copy")
+        .stdin(process::Stdio::piped())
+        .spawn()?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin.write_all(data)?;
+    }
+
+    let status = child.wait()?;
+    if status.success() {
+        eprintln!("written to clipboard via wl-copy");
+        Ok(())
+    } else {
+        Err(io::Error::new(io::ErrorKind::Other, "wl-copy failed"))
+    }
+}
+
+/// Try to write to clipboard, fall back to stdout if clipboard unavailable.
+fn write_to_clipboard_or_stdout(data: &[u8]) -> io::Result<()> {
+    // On Wayland, prefer wl-copy since arboard doesn't work reliably
+    if std::env::var("WAYLAND_DISPLAY").is_ok() {
+        if try_wl_copy(data).is_ok() {
+            return Ok(());
+        }
+    }
+
+    // Fall back to arboard (for X11, macOS, Windows)
+    match Clipboard::new() {
+        Ok(mut clipboard) => {
+            // Convert bytes to string for clipboard
+            match std::str::from_utf8(data) {
+                Ok(text) => {
+                    match clipboard.set_text(text) {
+                        Ok(_) => {
+                            eprintln!("written to clipboard");
+                            Ok(())
+                        }
+                        Err(_) => {
+                            eprintln!("clipboard write failed, falling back to stdout");
+                            io::stdout().write_all(data)
+                        }
+                    }
+                }
+                Err(_) => {
+                    eprintln!("output is not valid UTF-8, falling back to stdout");
+                    io::stdout().write_all(data)
+                }
+            }
+        }
+        Err(_) => {
+            eprintln!("clipboard unavailable, falling back to stdout");
+            io::stdout().write_all(data)
+        }
     }
 }
