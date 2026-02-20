@@ -28,9 +28,10 @@ COPY crates/ crates/
 RUN touch crates/core/src/lib.rs crates/cli/src/main.rs crates/wasm/src/lib.rs \
  && wasm-pack build crates/wasm --target web --out-dir ../../web/pkg
 
-# Copy the web shell (index.html + logo)
+# Copy the web shell (index.html + logo + QR library)
 COPY web/index.html          web/index.html
 COPY web/mobi-521-logo-1.png web/mobi-521-logo-1.png
+COPY web/qrcode.min.js       web/qrcode.min.js
 
 # ── Stage 2: serve with nginx + TLS ───────────────────────────────────────────
 FROM nginx:alpine

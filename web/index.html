@@ -391,6 +391,33 @@
     }
 
     .loading.visible { display: block; }
+
+    /* ── QR code ─────────────────────────────────────────────────────────── */
+    .qr-wrap {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-soft);
+      text-align: center;
+    }
+
+    .qr-wrap.visible { display: block; }
+
+    .qr-canvas-wrap {
+      display: inline-block;
+      background: #fff;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.6rem;
+      line-height: 0;
+    }
+
+    .qr-warn {
+      font-size: 0.72rem;
+      color: var(--red);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -423,7 +450,16 @@
         <div class="key-box">
           <div class="key-label">Public key — share this with senders</div>
           <div class="key-val" id="kg-pub"></div>
-          <button onclick="copyText('kg-pub', this)">Copy public key</button>
+          <div class="row">
+            <button onclick="copyText('kg-pub', this)">Copy public key</button>
+            <button onclick="toggleQR('pub', this)">Show QR</button>
+          </div>
+          <div class="qr-wrap" id="kg-pub-qr-wrap">
+            <div class="qr-canvas-wrap"><div id="kg-pub-qr"></div></div>
+            <div class="row" style="justify-content:center">
+              <button onclick="downloadQR('kg-pub-qr', 'mobi521-public-key.png')">Download QR</button>
+            </div>
+          </div>
         </div>
         <div class="key-box private" style="margin-top:0.6rem">
           <div class="key-label">Private key — keep this secret</div>
@@ -431,6 +467,14 @@
           <div class="row">
             <button onclick="copyText('kg-sec', this)">Copy private key</button>
             <button onclick="downloadKey()">Download identity file</button>
+            <button onclick="toggleQR('sec', this)">Show QR</button>
+          </div>
+          <div class="qr-wrap" id="kg-sec-qr-wrap">
+            <div class="qr-warn">⚠ Contains your private key — keep this image secret</div>
+            <div class="qr-canvas-wrap"><div id="kg-sec-qr"></div></div>
+            <div class="row" style="justify-content:center">
+              <button onclick="downloadQR('kg-sec-qr', 'mobi521-private-key.png')">Download QR</button>
+            </div>
           </div>
         </div>
       </div>
@@ -585,6 +629,8 @@
   </div><!-- .card -->
 </div><!-- .container -->
 
+<script src="qrcode.min.js"></script>
+
 <!-- ── WASM init ─────────────────────────────────────────────────────────── -->
 <script type="module">
   function wasmError(msg) {
@@ -711,6 +757,36 @@
     }
   }
 
+  /* ── QR codes ─────────────────────────────────────────────────────────── */
+  function renderQR(divId, text) {
+    const el = document.getElementById(divId);
+    el.innerHTML = '';
+    new QRCode(el, {
+      text,
+      width: 200,
+      height: 200,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  }
+
+  window.toggleQR = function (key, btn) {
+    const wrap = document.getElementById('kg-' + key + '-qr-wrap');
+    const isVisible = wrap.classList.contains('visible');
+    wrap.classList.toggle('visible');
+    btn.textContent = isVisible ? 'Show QR' : 'Hide QR';
+  };
+
+  window.downloadQR = function (divId, filename) {
+    const canvas = document.querySelector('#' + divId + ' canvas');
+    if (!canvas) return;
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+  };
+
   /* ── keygen ───────────────────────────────────────────────────────────── */
   window.doKeygen = function () {
     clearStatus('kg-status');
@@ -726,6 +802,15 @@
       document.getElementById('kg-pub').textContent = kp.publicKey;
       document.getElementById('kg-sec').textContent = kp.privateKey;
       document.getElementById('kg-result').style.display = 'block';
+      // Render QR codes and collapse toggles for fresh generation
+      renderQR('kg-pub-qr', kp.publicKey);
+      renderQR('kg-sec-qr', kp.privateKey);
+      ['pub', 'sec'].forEach(key => {
+        const wrap = document.getElementById('kg-' + key + '-qr-wrap');
+        wrap.classList.remove('visible');
+        const btn = wrap.previousElementSibling.querySelector('button:last-child');
+        if (btn) btn.textContent = 'Show QR';
+      });
     } catch (e) {
       setStatus('kg-status', String(e), true);
     }
