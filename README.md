@@ -55,7 +55,7 @@ docker run --rm -p 8080:80 -p 8443:443 mobi521-web
 
 Open `https://localhost:8443` — runs entirely in the browser via WebAssembly, no data leaves your machine.
 
-**Try it online:** [http://159.89.109.4/](http://159.89.109.4/) — all cryptography runs locally in your browser.
+**Try it online:** [https://159.89.109.4/](http://159.89.109.4/) — all cryptography runs locally in your browser.
 
 ## Usage
 
