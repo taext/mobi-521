@@ -13,7 +13,7 @@ A file encryption tool inspired by [age](https://age-encryption.org/), rebuilt o
 | Key exchange | P-521 ECDH (ephemeral sender key + static recipient key) |
 | Key derivation | HKDF-SHA512 |
 | Symmetric encryption | ChaCha20-Poly1305 (STREAM construction, 64 KiB chunks) |
-| Signing | ECDSA-P521-SHA512 (RFC 6979 deterministic) |
+| Signing | ECDSA-P521-SHA512 (hedged nonce) |
 | Key encoding | Bech32m (`mobi521…` public · `MOBI521-SECRET-KEY-…` private) |
 
 The STREAM chunked construction means truncated ciphertexts always fail authentication — a chopped-off file cannot be decrypted as if it were complete.
@@ -74,6 +74,24 @@ mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.mobi521
 echo "secret" | mobi521 encrypt -r mobi521... -o encrypted.mobi521
 ```
 
+If `-r` is omitted, mobi-521 looks for a default recipient key in:
+
+```
+$XDG_CONFIG_HOME/mobi521/default-recipient   # if XDG_CONFIG_HOME is set
+~/.config/mobi521/default-recipient           # otherwise
+```
+
+The file should contain just the bech32m public key on a single line. This lets you encrypt to yourself without specifying `-r` every time:
+
+```bash
+# Set up once
+mkdir -p ~/.config/mobi521
+echo "mobi521..." > ~/.config/mobi521/default-recipient
+
+# Then encrypt without -r
+mobi521 encrypt secret.txt -o secret.txt.enc
+```
+
 ### Decrypt
 
 ```bash
@@ -101,7 +119,7 @@ echo "hello" | mobi521 verify -p mobi521... -s <base64-sig>
 ## File format
 
 ```
-mobi521/v2\n
+mobi521.io/encrypted/v3\n
 -> p521 <bech32m-ephemeral-pubkey>\n
 <base64(encrypted-file-key)>\n
 ---\n

@@ -11,7 +11,7 @@ use zeroize::Zeroizing;
 
 use crate::Error;
 
-const HKDF_INFO: &[u8] = b"age-512-p521";
+const HKDF_INFO: &[u8] = b"mobi521.io/encrypted/v3";
 const FILE_KEY_LEN: usize = 32;
 /// Plaintext bytes per STREAM chunk (64 KiB, matching the age spec).
 const CHUNK_SIZE: usize = 65536;

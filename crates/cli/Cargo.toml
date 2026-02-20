@@ -1,6 +1,6 @@
 [package]
 name = "mobi521"
-version = "0.22.0"
+version.workspace = true
 edition = "2021"
 
 [[bin]]
