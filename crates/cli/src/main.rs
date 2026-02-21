@@ -34,8 +34,7 @@ enum Command {
         #[arg(long)]
         qr: bool,
 
-        /// Save QR codes as PNG images (requires --qr flag)
-        /// Creates {PREFIX}_public.png and {PREFIX}_secret.png
+        /// Save QR codes as PNG images. Creates {PREFIX}_public.png and {PREFIX}_secret.png
         #[arg(long, value_name = "PREFIX", requires = "qr")]
         qr_png: Option<String>,
     },
