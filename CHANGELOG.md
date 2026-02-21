@@ -15,6 +15,11 @@ All notable changes to mobi-521 will be documented in this file.
   - Uses `qrcode` crate v0.14 for generation
   - Optional `image` crate v0.25 for PNG support
 
+- **HTTPS server for web UI** - Simple Python HTTPS server (`web/https_server.py`)
+  - Serves web UI over HTTPS (port 443 by default)
+  - SSL certificate support for secure local hosting
+  - Useful for deployment without Docker
+
 ### Changed
 
 - **BREAKING: File extension changed** from `.mobi521` to `.m521` (shorter, cleaner)
