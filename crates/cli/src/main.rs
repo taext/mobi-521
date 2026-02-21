@@ -124,7 +124,6 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
                 None => {
                     println!("{}", content.trim());
-                    eprintln!("# Public key: {}", pub_str);
                 }
             }
         }
