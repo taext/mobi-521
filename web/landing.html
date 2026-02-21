@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mobi-521 — Modern P-521 Encryption</title>
+  <style>
+    /* ── tokens ──────────────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0f1117;
+      --surface:     #161b22;
+      --surface2:    #1c2128;
+      --border:      #2d333b;
+      --border-soft: #21262d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --accent:      #4493f8;
+      --accent-dim:  #1b3a6b;
+      --green:       #3fb950;
+      --green-bg:    #0d2416;
+      --green-border:#1f4a2a;
+      --red:         #f78166;
+      --red-bg:      #2d1216;
+      --red-border:  #5c1c1c;
+      --shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+      --radius:      8px;
+      --radius-sm:   6px;
+      --transition:  0.2s ease;
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f7fa;
+      --surface:     #ffffff;
+      --surface2:    #eef1f5;
+      --border:      #d0d7de;
+      --border-soft: #e4e8ed;
+      --text:        #1a1f27;
+      --text-muted:  #6a737d;
+      --accent:      #0969da;
+      --accent-dim:  #dbeafe;
+      --green:       #1a7f37;
+      --green-bg:    #dafbe1;
+      --green-border:#96d6a0;
+      --red:         #b91c1c;
+      --red-bg:      #fee2e2;
+      --red-border:  #fca5a5;
+      --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* ── reset ───────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── base ────────────────────────────────────────────────────────────── */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── theme toggle ────────────────────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0.5rem 0.75rem;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition),
+                  color var(--transition), transform 0.1s;
+      z-index: 100;
+      line-height: 1;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* ── layout ──────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .narrow {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    section {
+      padding: 4rem 0;
+    }
+
+    /* ── hero ────────────────────────────────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 5rem 0 4rem;
+    }
+
+    .logo-img {
+      height: 240px;
+      width: auto;
+      margin-bottom: 1.5rem;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .hero .tagline {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-weight: 400;
+    }
+
+    .hero .subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 2.5rem;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.02em;
+    }
+
+    .hero .subtitle span {
+      display: inline-block;
+      margin: 0 0.4rem;
+      opacity: 0.4;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      transition: all var(--transition);
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── features grid ───────────────────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: all var(--transition);
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* ── section headers ─────────────────────────────────────────────────── */
+    .section-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .section-header h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .section-header p {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+    }
+
+    /* ── two-column layout ───────────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .usage-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .usage-card h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .usage-card .icon {
+      font-size: 1.75rem;
+    }
+
+    .usage-card ul {
+      list-style: none;
+      margin-top: 1rem;
+    }
+
+    .usage-card li {
+      padding: 0.5rem 0;
+      color: var(--text-muted);
+      position: relative;
+      padding-left: 1.5rem;
+    }
+
+    .usage-card li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── code blocks ─────────────────────────────────────────────────────── */
+    pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin-top: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    code {
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.875em;
+      color: var(--accent);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+    }
+
+    /* ── crypto spec table ───────────────────────────────────────────────── */
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .spec-table th,
+    .spec-table td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .spec-table th {
+      background: var(--surface2);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .spec-table td {
+      color: var(--text-muted);
+    }
+
+    .spec-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spec-table td:first-child {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── footer ──────────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border);
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+
+    /* ── badges ──────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+      border-radius: 20px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+    }
+
+    .badge.beta {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ── responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero .tagline {
+        font-size: 1rem;
+      }
+
+      .logo-img {
+        height: 180px;
+      }
+
+      section {
+        padding: 3rem 0;
+      }
+
+      .section-header h2 {
+        font-size: 2rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-btn" title="Toggle light/dark mode">🌙</button>
+
+<!-- ── HERO ──────────────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container narrow">
+    <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
+    <div class="version-badge">v0.4.1</div>
+    <h1>mobi-521</h1>
+    <p class="tagline">Modern file encryption powered by P-521 elliptic curves</p>
+    <p class="subtitle">
+      P-521 ECDH <span>•</span> HKDF-SHA512 <span>•</span> ChaCha20-Poly1305 <span>•</span> ECDSA signatures
+    </p>
+
+    <div class="cta-buttons">
+      <a href="https://159.89.109.4/" class="btn btn-primary" target="_blank" rel="noopener">Try Web App →</a>
+      <a href="userguide.html" class="btn btn-secondary">User Guide</a>
+      <a href="https://github.com/taext/mobi-521" class="btn btn-secondary" target="_blank" rel="noopener">
+        GitHub
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────────────────────────────────── -->
+<section style="background: var(--surface2); padding: 4rem 0;">
+  <div class="container">
+    <div class="section-header">
+      <h2>Why mobi-521?</h2>
+      <p>Security-first encryption with modern cryptography and zero-knowledge design</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔐</span>
+        <h3>P-521 Elliptic Curves</h3>
+        <p>Built on NIST P-521 (2<sup>521</sup> - 1, a Mersenne prime), offering 256-bit security strength. Unlike age/rage's X25519, P-521 provides higher security margins for long-term data protection.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Chunked STREAM</h3>
+        <p>ChaCha20-Poly1305 STREAM construction with 64 KiB chunks. Truncated files always fail authentication — partial decryption is impossible.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h3>Web + CLI</h3>
+        <p>Full-featured command-line tool for automation and scripting. Browser-based UI runs entirely client-side via WebAssembly — zero data leaves your machine.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">📱</span>
+        <h3>QR Code Support</h3>
+        <p>Generate QR codes for key pairs. ASCII QR codes in terminal work over SSH. Optional PNG export for physical backup and air-gapped transfers.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">✍️</span>
+        <h3>Digital Signatures</h3>
+        <p>ECDSA-P521-SHA512 signatures with hedged nonces. Sign and verify messages with the same keys used for encryption. Domain-separated for security.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <h3>Zero Dependencies</h3>
+        <p>Single binary, no external dependencies. Optional Wayland clipboard support. Runs in Docker, Nix, or standalone. WebAssembly build for browser use.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CLI vs WEB ────────────────────────────────────────────────────────── -->
+<section>
+  <div class="container">
+    <div class="section-header">
+      <h2>Choose Your Interface</h2>
+      <p>Powerful command-line tool or user-friendly browser UI</p>
+    </div>
+
+    <div class="two-col">
+      <div class="usage-card">
+        <h3><span class="icon">⌨️</span> CLI</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          Perfect for automation, scripting, and power users
+        </p>
+        <ul>
+          <li>Single binary, zero dependencies</li>
+          <li>Pipe data through stdin/stdout</li>
+          <li>Clipboard integration (Wayland/X11/macOS/Windows)</li>
+          <li>QR code generation (ASCII + PNG)</li>
+          <li>Default recipient configuration</li>
+          <li>Batch operations and scripting</li>
+        </ul>
+        <pre><code># Generate keys with QR codes
+mobi521 keygen --qr --qr-png mykey
+
+# Encrypt from clipboard
+mobi521 encrypt -r mobi521...
+
+# Decrypt to file
+mobi521 decrypt -i key.txt msg.m521 -o plain.txt
+
+# Sign and verify
+mobi521 sign -i key.txt doc.pdf -o doc.sig
+mobi521 verify -p mobi521... -s doc.sig doc.pdf</code></pre>
+      </div>
+
+      <div class="usage-card">
+        <h3><span class="icon">🌐</span> Web App</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          User-friendly interface, runs entirely in your browser
+        </p>
+        <ul>
+          <li>No installation required</li>
+          <li>Zero data leaves your machine (WebAssembly)</li>
+          <li>Works offline after first load</li>
+          <li>QR code scanning for keys</li>
+          <li>Drag-and-drop file encryption</li>
+          <li>Light/dark theme support</li>
+        </ul>
+        <pre><code># Run locally with Docker
+docker build -f Dockerfile.web -t mobi521-web .
+docker run --rm -p 8080:80 -p 8443:443 mobi521-web
+
+# Or use Python HTTPS server
+cd web
+python3 https_server.py
+
+# Then open: https://localhost:8443</code></pre>
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <a href="https://159.89.109.4/" class="btn btn-primary" target="_blank" rel="noopener">Launch Web App →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CRYPTO SPEC ───────────────────────────────────────────────────────── -->
+<section style="background: var(--surface2); padding: 4rem 0;">
+  <div class="container narrow">
+    <div class="section-header">
+      <h2>Cryptographic Stack</h2>
+      <p>Transparent security with battle-tested primitives</p>
+    </div>
+
+    <table class="spec-table">
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Algorithm</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Key Exchange</td>
+          <td>P-521 ECDH (ephemeral + static)</td>
+        </tr>
+        <tr>
+          <td>Key Derivation</td>
+          <td>HKDF-SHA512</td>
+        </tr>
+        <tr>
+          <td>Symmetric Encryption</td>
+          <td>ChaCha20-Poly1305 (STREAM, 64 KiB chunks)</td>
+        </tr>
+        <tr>
+          <td>Digital Signatures</td>
+          <td>ECDSA-P521-SHA512 (hedged nonce)</td>
+        </tr>
+        <tr>
+          <td>Key Encoding</td>
+          <td>Bech32m (<code>mobi521…</code> / <code>MOBI521-SECRET-KEY-…</code>)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 2rem; padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);">
+      <h4 style="margin-bottom: 0.75rem; color: var(--text);">File Format (v3)</h4>
+      <pre style="margin: 0;"><code>m521.app/encrypted/v3
+-> p521 &lt;bech32m-ephemeral-pubkey&gt;
+&lt;base64(encrypted-file-key)&gt;
+---
+&lt;base_nonce (12 bytes)&gt; || &lt;ChaCha20-Poly1305 STREAM payload&gt;</code></pre>
+      <p style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+        Each chunk is 64 KiB with a 16-byte authentication tag. Final chunk uses a special nonce flag. Truncated ciphertexts always fail authentication.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── INSTALLATION ──────────────────────────────────────────────────────── -->
+<section>
+  <div class="container narrow">
+    <div class="section-header">
+      <h2>Get Started</h2>
+      <p>Install via Nix, Docker, or build from source</p>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">
+        With Nix <span class="badge">Recommended</span>
+      </h3>
+      <pre><code>nix develop  # enter dev shell
+cargo build --release -p mobi521
+./target/release/mobi521 --help</code></pre>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">
+        With Docker
+      </h3>
+      <pre><code># CLI
+docker build -t mobi521 .
+docker run --rm mobi521 --help
+
+# Web UI
+docker build -f Dockerfile.web -t mobi521-web .
+docker run --rm -p 8080:80 -p 8443:443 mobi521-web</code></pre>
+    </div>
+
+    <div style="margin-top: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">
+        From Source
+      </h3>
+      <pre><code>git clone https://github.com/taext/mobi-521.git
+cd mobi-521
+cargo build --release -p mobi521
+
+# Optional: Build with QR PNG support
+cargo build --release -p mobi521 --features qr-png</code></pre>
+    </div>
+
+    <div style="margin-top: 3rem; text-align: center;">
+      <a href="userguide.html" class="btn btn-primary">
+        Read User Guide →
+      </a>
+      <a href="https://github.com/taext/mobi-521" class="btn btn-secondary" target="_blank" rel="noopener" style="margin-left: 1rem;">
+        View on GitHub
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container narrow">
+    <p>
+      mobi-521 v0.4.1 — Built with Rust 🦀 — MIT Licensed
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <a href="https://github.com/taext/mobi-521" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="userguide.html">User Guide</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener">README</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+    </p>
+    <p style="margin-top: 1.5rem; font-size: 0.8rem;">
+      Not affiliated with or endorsed by the age/rage project. Inspired by age's design philosophy.
+    </p>
+  </div>
+</footer>
+
+<script>
+  /* ── theme toggle ─────────────────────────────────────────────────────── */
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('theme-btn');
+  const saved = localStorage.getItem('mobi521-theme');
+
+  // Default to light mode unless user has explicitly chosen dark
+  const defaultTheme = saved || 'light';
+  setTheme(defaultTheme);
+
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('mobi521-theme', t);
+  }
+
+  themeBtn.addEventListener('click', () =>
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+</script>
+
+</body>
+</html>

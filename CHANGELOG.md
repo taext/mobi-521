@@ -2,6 +2,51 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.4.1] - 2026-02-21
+
+### Added
+
+- **Landing page** - Professional presentation page (`web/landing.html`)
+  - Modern marketing-focused design with light/dark theme support
+  - Feature showcase grid highlighting P-521, STREAM, QR codes, signatures
+  - CLI vs Web comparison section with code examples
+  - Complete cryptographic stack specification
+  - Installation guides for Nix, Docker, and source builds
+  - Defaults to light mode with persistent theme preference
+
+- **Comprehensive user guide** - Complete reference documentation (`web/userguide.html`)
+  - 14 detailed sections covering all features
+  - Sticky sidebar navigation with smooth scrolling
+  - Installation, CLI usage, QR codes, encryption, decryption, signatures
+  - Clipboard integration guide with platform-specific details
+  - Web UI security model and features
+  - File format specification and security considerations
+  - Troubleshooting section for common issues
+  - Light/dark theme support (defaults to light mode)
+
+### Changed
+
+- **README.md streamlined** - Reduced from ~200 lines to 127 lines
+  - Now serves as quick reference with links to detailed documentation
+  - Removed duplicate content covered in user guide
+  - Added prominent links to landing page, user guide, and web app
+  - Kept essential crypto stack, file format, and workspace layout
+  - Added Mersenne prime notation (2^521 - 1) in divergences section
+
+- **HTTPS server improvements** - Added cache-control headers to prevent aggressive browser caching
+  - `Cache-Control: no-cache, no-store, must-revalidate`
+  - `Pragma: no-cache`
+  - `Expires: 0`
+  - Fixes Firefox redirect caching issues
+
+### Documentation
+
+- Landing page provides professional overview and feature highlights
+- User guide serves as complete reference with troubleshooting
+- README.md now focuses on quick start and references detailed docs
+- All documentation pages cross-link for easy navigation
+- Consistent version numbers across all files (v0.4.1)
+
 ## [0.4.0] - 2026-02-21
 
 ### Added

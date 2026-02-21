@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Guide — mobi-521</title>
+  <style>
+    /* ── tokens ──────────────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0f1117;
+      --surface:     #161b22;
+      --surface2:    #1c2128;
+      --border:      #2d333b;
+      --border-soft: #21262d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --accent:      #4493f8;
+      --accent-dim:  #1b3a6b;
+      --green:       #3fb950;
+      --green-bg:    #0d2416;
+      --green-border:#1f4a2a;
+      --red:         #f78166;
+      --red-bg:      #2d1216;
+      --red-border:  #5c1c1c;
+      --yellow:      #d29922;
+      --yellow-bg:   #2b2413;
+      --yellow-border:#4a3d1a;
+      --shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+      --radius:      8px;
+      --radius-sm:   6px;
+      --transition:  0.2s ease;
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f7fa;
+      --surface:     #ffffff;
+      --surface2:    #eef1f5;
+      --border:      #d0d7de;
+      --border-soft: #e4e8ed;
+      --text:        #1a1f27;
+      --text-muted:  #6a737d;
+      --accent:      #0969da;
+      --accent-dim:  #dbeafe;
+      --green:       #1a7f37;
+      --green-bg:    #dafbe1;
+      --green-border:#96d6a0;
+      --red:         #b91c1c;
+      --red-bg:      #fee2e2;
+      --red-border:  #fca5a5;
+      --yellow:      #9a6700;
+      --yellow-bg:   #fef3c7;
+      --yellow-border:#fde047;
+      --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* ── reset ───────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── base ────────────────────────────────────────────────────────────── */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── theme toggle ────────────────────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0.5rem 0.75rem;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition),
+                  color var(--transition), transform 0.1s;
+      z-index: 100;
+      line-height: 1;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* ── layout ──────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .sidebar-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (max-width: 968px) {
+      .sidebar-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .sidebar {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+    }
+
+    /* ── header ──────────────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+
+    .breadcrumb {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text);
+    }
+
+    .breadcrumb span {
+      color: var(--text-muted);
+      margin: 0 0.5rem;
+    }
+
+    /* ── sidebar ─────────────────────────────────────────────────────────── */
+    .sidebar {
+      position: sticky;
+      top: 2rem;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toc h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .toc ul {
+      list-style: none;
+    }
+
+    .toc li {
+      margin-bottom: 0.5rem;
+    }
+
+    .toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.25rem 0;
+      transition: color var(--transition);
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .toc a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── main content ────────────────────────────────────────────────────── */
+    .content {
+      padding-bottom: 4rem;
+    }
+
+    .content h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      color: var(--text);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .content h2:first-child {
+      margin-top: 0;
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .content h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .content p {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 1rem;
+      padding-left: 2rem;
+      color: var(--text-muted);
+    }
+
+    .content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .content strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .content code {
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--accent);
+    }
+
+    .content pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+    }
+
+    /* ── callouts ────────────────────────────────────────────────────────── */
+    .callout {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-sm);
+      margin: 1.5rem 0;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .callout-warning {
+      background: var(--yellow-bg);
+      border-color: var(--yellow);
+      color: var(--text);
+    }
+
+    .callout-danger {
+      background: var(--red-bg);
+      border-color: var(--red);
+      color: var(--text);
+    }
+
+    .callout-success {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: var(--text);
+    }
+
+    .callout strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .callout p {
+      color: var(--text);
+      margin: 0;
+    }
+
+    /* ── tables ──────────────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    th, td {
+      padding: 0.875rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--surface2);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* ── footer ──────────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-btn" title="Toggle light/dark mode">🌙</button>
+
+<header>
+  <div class="container">
+    <h1>mobi-521 User Guide</h1>
+    <p>Complete reference for all features</p>
+    <div class="breadcrumb">
+      <a href="landing.html">Home</a>
+      <span>›</span>
+      <span>User Guide</span>
+    </div>
+  </div>
+</header>
+
+<div class="sidebar-layout">
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <nav class="toc">
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#cli">Command-Line Interface</a></li>
+        <li><a href="#keygen">Key Generation</a></li>
+        <li><a href="#qr-codes">QR Code Features</a></li>
+        <li><a href="#encryption">Encryption</a></li>
+        <li><a href="#decryption">Decryption</a></li>
+        <li><a href="#clipboard">Clipboard Integration</a></li>
+        <li><a href="#signing">Digital Signatures</a></li>
+        <li><a href="#web-ui">Web UI</a></li>
+        <li><a href="#configuration">Configuration</a></li>
+        <li><a href="#file-format">File Format</a></li>
+        <li><a href="#security">Security Considerations</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN CONTENT ─────────────────────────────────────────────────────── -->
+  <main class="content">
+
+    <!-- ── OVERVIEW ─────────────────────────────────────────────────────── -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        mobi-521 is a modern file encryption tool built on P-521 elliptic curve cryptography. It provides both a command-line interface and a browser-based web UI for encrypting files and messages.
+      </p>
+      <p>
+        Unlike age/rage (which uses X25519/Ed25519), mobi-521 is built entirely on the NIST P-521 curve (2<sup>521</sup> - 1, a Mersenne prime), offering 256-bit security strength with higher safety margins for long-term data protection.
+      </p>
+
+      <div class="callout callout-info">
+        <strong>Not Compatible with age/rage</strong>
+        <p>mobi-521 uses a different cryptographic stack and file format. Files encrypted with age cannot be decrypted with mobi-521, and vice versa.</p>
+      </div>
+
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>P-521 ECDH</strong> key exchange with ephemeral sender keys</li>
+        <li><strong>HKDF-SHA512</strong> key derivation</li>
+        <li><strong>ChaCha20-Poly1305</strong> symmetric encryption in STREAM mode (64 KiB chunks)</li>
+        <li><strong>ECDSA-P521-SHA512</strong> digital signatures with hedged nonces</li>
+        <li><strong>Bech32m</strong> key encoding for error detection</li>
+        <li><strong>QR code</strong> generation for keys (ASCII terminal + PNG export)</li>
+        <li><strong>Clipboard integration</strong> on all major platforms</li>
+        <li><strong>WebAssembly</strong> support for browser-based encryption</li>
+      </ul>
+    </section>
+
+    <!-- ── INSTALLATION ─────────────────────────────────────────────────── -->
+    <section id="installation">
+      <h2>Installation</h2>
+
+      <h3>With Nix (Recommended)</h3>
+      <p>The Nix development shell includes all required dependencies, including <code>wl-clipboard</code> for Wayland clipboard support.</p>
+      <pre><code>nix develop        # enter dev shell
+cargo build --release -p mobi521
+./target/release/mobi521 --help</code></pre>
+
+      <h3>With Docker (CLI)</h3>
+      <pre><code>docker build -t mobi521 .
+docker run --rm mobi521 --help
+
+# Mount a directory to work with files
+docker run --rm -v "$PWD":/data mobi521 \
+    encrypt -r &lt;pubkey&gt; /data/plaintext.txt -o /data/out.m521</code></pre>
+
+      <h3>With Docker (Web UI)</h3>
+      <pre><code>docker build -f Dockerfile.web -t mobi521-web .
+docker run --rm -p 8080:80 -p 8443:443 mobi521-web
+
+# Open: https://localhost:8443</code></pre>
+
+      <h3>From Source</h3>
+      <pre><code>git clone https://github.com/taext/mobi-521.git
+cd mobi-521
+cargo build --release -p mobi521
+
+# Optional: Build with QR PNG support
+cargo build --release -p mobi521 --features qr-png</code></pre>
+
+      <div class="callout callout-info">
+        <strong>QR PNG Feature</strong>
+        <p>The <code>--features qr-png</code> flag enables PNG export of QR codes via the <code>--qr-png</code> CLI option. Without this feature, only ASCII QR codes are supported.</p>
+      </div>
+    </section>
+
+    <!-- ── CLI ──────────────────────────────────────────────────────────── -->
+    <section id="cli">
+      <h2>Command-Line Interface</h2>
+      <p>The mobi-521 CLI provides five main commands:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>keygen</code></td>
+            <td>Generate a new key pair</td>
+          </tr>
+          <tr>
+            <td><code>encrypt</code></td>
+            <td>Encrypt a file or message</td>
+          </tr>
+          <tr>
+            <td><code>decrypt</code></td>
+            <td>Decrypt a file or message</td>
+          </tr>
+          <tr>
+            <td><code>sign</code></td>
+            <td>Create a digital signature</td>
+          </tr>
+          <tr>
+            <td><code>verify</code></td>
+            <td>Verify a digital signature</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Global Options</h3>
+      <pre><code>mobi521 --help       # Show help
+mobi521 --version    # Show version</code></pre>
+
+      <h3>Subcommand Help</h3>
+      <p>Each subcommand has its own detailed help text with all available options:</p>
+      <pre><code>mobi521 keygen -h    # Key generation options
+mobi521 encrypt -h   # Encryption options
+mobi521 decrypt -h   # Decryption options
+mobi521 sign -h      # Signing options
+mobi521 verify -h    # Verification options</code></pre>
+      <p>Use <code>-h</code> or <code>--help</code> after any subcommand to see all flags, arguments, and usage examples for that specific command.</p>
+    </section>
+
+    <!-- ── KEY GENERATION ───────────────────────────────────────────────── -->
+    <section id="keygen">
+      <h2>Key Generation</h2>
+      <p>Generate a new P-521 key pair for encryption and signing.</p>
+
+      <h3>Basic Usage</h3>
+      <pre><code># Print both keys to stdout
+mobi521 keygen
+
+# Output:
+# Public key: mobi521...
+# MOBI521-SECRET-KEY-...</code></pre>
+
+      <h3>Save to File</h3>
+      <pre><code># Write private key to file, print public key to stderr
+mobi521 keygen -o identity.txt
+
+# The identity file contains:
+# - A comment with the public key
+# - The private key on a single line</code></pre>
+
+      <h3>With QR Codes (ASCII)</h3>
+      <pre><code># Display QR codes in terminal
+mobi521 keygen --qr
+
+# Shows:
+# - Public key QR code (safe to share)
+# - Private key QR code (keep secret!)
+# - Warning about terminal history</code></pre>
+
+      <div class="callout callout-warning">
+        <strong>Security Warning</strong>
+        <p>When using <code>--qr</code>, QR codes containing your private key are displayed in the terminal. Clear your terminal scrollback buffer after use to prevent unauthorized access.</p>
+      </div>
+
+      <h3>With QR PNG Export</h3>
+      <pre><code># Save QR codes as PNG images (requires --features qr-png at build time)
+mobi521 keygen --qr --qr-png mykey
+
+# Creates:
+# - mykey_public.png (200×200px, safe to share)
+# - mykey_secret.png (200×200px, KEEP SECRET!)</code></pre>
+
+      <div class="callout callout-danger">
+        <strong>Critical: Private Key QR Codes</strong>
+        <p>QR codes of private keys contain your entire identity. Treat PNG files with private key QR codes with the same security as the private key itself. Do not share, upload to cloud services, or print without secure storage.</p>
+      </div>
+
+      <h3>Key Format</h3>
+      <ul>
+        <li><strong>Public keys</strong> start with <code>mobi521</code> (lowercase)</li>
+        <li><strong>Private keys</strong> start with <code>MOBI521-SECRET-KEY-</code> (uppercase)</li>
+        <li>Both use Bech32m encoding with built-in checksums</li>
+        <li>Keys are fixed-length and self-describing</li>
+      </ul>
+    </section>
+
+    <!-- ── QR CODES ─────────────────────────────────────────────────────── -->
+    <section id="qr-codes">
+      <h2>QR Code Features</h2>
+      <p>mobi-521 supports QR code generation for easy key exchange and backup.</p>
+
+      <h3>ASCII QR Codes</h3>
+      <p>Always available, no extra dependencies or build flags required.</p>
+      <pre><code>mobi521 keygen --qr</code></pre>
+      <ul>
+        <li>Displayed directly in the terminal</li>
+        <li>Works over SSH connections</li>
+        <li>Scannable with any QR code reader</li>
+        <li>Zero additional dependencies</li>
+      </ul>
+
+      <h3>PNG QR Codes</h3>
+      <p>Optional feature for high-quality image export.</p>
+      <pre><code># Build with PNG support
+cargo build --release -p mobi521 --features qr-png
+
+# Generate PNG QR codes
+mobi521 keygen --qr --qr-png identity</code></pre>
+      <ul>
+        <li>200×200 pixel images (matching web UI)</li>
+        <li>High contrast for reliable scanning</li>
+        <li>Suitable for printing on physical media</li>
+        <li>Requires <code>--features qr-png</code> at build time</li>
+      </ul>
+
+      <h3>Use Cases</h3>
+      <ul>
+        <li><strong>Air-gapped transfers</strong>: Scan QR codes to transfer keys between offline devices</li>
+        <li><strong>Physical backup</strong>: Print and laminate QR codes for durable storage</li>
+        <li><strong>Key exchange</strong>: Share public keys in person at conferences or meetups</li>
+        <li><strong>Mobile import</strong>: Scan keys into mobile apps or password managers</li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>QR Code Security</strong>
+        <p>Public key QR codes are safe to share. Private key QR codes must be treated with the same security as the raw private key — they contain your complete cryptographic identity.</p>
+      </div>
+    </section>
+
+    <!-- ── ENCRYPTION ───────────────────────────────────────────────────── -->
+    <section id="encryption">
+      <h2>Encryption</h2>
+      <p>Encrypt files or messages using a recipient's public key.</p>
+
+      <h3>Encrypt a File</h3>
+      <pre><code>mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.m521</code></pre>
+
+      <h3>Encrypt from stdin</h3>
+      <pre><code>echo "secret message" | mobi521 encrypt -r mobi521... -o secret.m521</code></pre>
+
+      <h3>Encrypt from Clipboard</h3>
+      <pre><code># Copy text to clipboard, then:
+mobi521 encrypt -r mobi521...
+
+# Encrypted output is now in clipboard</code></pre>
+
+      <h3>Using Default Recipient</h3>
+      <p>Set a default recipient to avoid typing <code>-r</code> every time:</p>
+      <pre><code># Set up once
+mkdir -p ~/.config/mobi521
+echo "mobi521..." &gt; ~/.config/mobi521/default-recipient
+
+# Then encrypt without -r
+mobi521 encrypt secret.txt -o secret.m521</code></pre>
+
+      <h3>Output Options</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>-o FILE</code></td>
+            <td>Write ciphertext to file</td>
+          </tr>
+          <tr>
+            <td>No <code>-o</code>, no input file</td>
+            <td>Clipboard → Clipboard</td>
+          </tr>
+          <tr>
+            <td>No <code>-o</code>, file input</td>
+            <td>File → stdout</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>File Extension</h3>
+      <p>Encrypted files use the <code>.m521</code> extension by convention. The file format is described in the <a href="#file-format">File Format</a> section.</p>
+    </section>
+
+    <!-- ── DECRYPTION ───────────────────────────────────────────────────── -->
+    <section id="decryption">
+      <h2>Decryption</h2>
+      <p>Decrypt files or messages using your private key.</p>
+
+      <h3>Decrypt a File</h3>
+      <pre><code>mobi521 decrypt -i identity.txt encrypted.m521 -o plaintext.txt</code></pre>
+
+      <h3>Decrypt with Raw Key String</h3>
+      <pre><code>mobi521 decrypt -i "MOBI521-SECRET-KEY-..." encrypted.m521 -o plaintext.txt</code></pre>
+
+      <h3>Decrypt from Clipboard</h3>
+      <pre><code># Copy encrypted text to clipboard, then:
+mobi521 decrypt -i identity.txt
+
+# Decrypted plaintext is now in clipboard</code></pre>
+
+      <h3>Decrypt to stdout</h3>
+      <pre><code>mobi521 decrypt -i identity.txt encrypted.m521</code></pre>
+
+      <h3>Identity File Format</h3>
+      <p>Identity files contain a private key and optionally a comment with the public key:</p>
+      <pre><code># mobi-521 identity file
+# public key: mobi521...
+MOBI521-SECRET-KEY-...</code></pre>
+      <p>The <code>-i</code> flag accepts either:</p>
+      <ul>
+        <li>A path to an identity file</li>
+        <li>A raw private key string starting with <code>MOBI521-SECRET-KEY-</code></li>
+      </ul>
+
+      <h3>Binary vs Text Output</h3>
+      <p>mobi-521 automatically detects whether decrypted data is UTF-8 text or binary:</p>
+      <ul>
+        <li><strong>UTF-8 text</strong>: Displayed as-is in terminal or clipboard</li>
+        <li><strong>Binary data</strong>: Displayed as hex dump (first 256 bytes) in terminal, full binary in clipboard</li>
+      </ul>
+      <p>Always use <code>-o</code> to save binary files to preserve exact bytes.</p>
+    </section>
+
+    <!-- ── CLIPBOARD ────────────────────────────────────────────────────── -->
+    <section id="clipboard">
+      <h2>Clipboard Integration</h2>
+      <p>mobi-521 provides seamless clipboard integration across all major platforms.</p>
+
+      <h3>Platform Support</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Backend</th>
+            <th>Requirements</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Wayland</td>
+            <td><code>wl-clipboard</code></td>
+            <td><code>wl-copy</code> / <code>wl-paste</code> in PATH</td>
+          </tr>
+          <tr>
+            <td>X11</td>
+            <td>arboard (native)</td>
+            <td>None (built-in)</td>
+          </tr>
+          <tr>
+            <td>macOS</td>
+            <td>arboard (native)</td>
+            <td>None (built-in)</td>
+          </tr>
+          <tr>
+            <td>Windows</td>
+            <td>arboard (native)</td>
+            <td>None (built-in)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>How It Works</h3>
+      <p>When no input file is specified, mobi-521 automatically tries to use the clipboard:</p>
+      <pre><code># Encrypt clipboard contents
+mobi521 encrypt -r mobi521...
+
+# Decrypt clipboard contents
+mobi521 decrypt -i identity.txt</code></pre>
+
+      <h3>Behavior Matrix</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Output Flag</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No file (clipboard)</td>
+            <td>No <code>-o</code></td>
+            <td>Clipboard → Clipboard</td>
+          </tr>
+          <tr>
+            <td>No file (clipboard)</td>
+            <td><code>-o FILE</code></td>
+            <td>Clipboard → File</td>
+          </tr>
+          <tr>
+            <td>File specified</td>
+            <td>No <code>-o</code></td>
+            <td>File → stdout</td>
+          </tr>
+          <tr>
+            <td>File specified</td>
+            <td><code>-o FILE</code></td>
+            <td>File → File</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Automatic Fallback</h3>
+      <p>If clipboard access is unavailable (e.g., headless server, missing dependencies), mobi-521 automatically falls back to stdin/stdout:</p>
+      <pre><code># If clipboard unavailable, reads from stdin:
+echo "message" | mobi521 encrypt -r mobi521...</code></pre>
+
+      <div class="callout callout-info">
+        <strong>Wayland Setup</strong>
+        <p>On Wayland systems, install <code>wl-clipboard</code> for clipboard support. The Nix dev shell includes this automatically. Without it, mobi-521 falls back to stdin/stdout.</p>
+      </div>
+    </section>
+
+    <!-- ── SIGNING ──────────────────────────────────────────────────────── -->
+    <section id="signing">
+      <h2>Digital Signatures</h2>
+      <p>Create and verify ECDSA-P521-SHA512 digital signatures.</p>
+
+      <h3>Sign a Message</h3>
+      <pre><code># Sign a file
+mobi521 sign -i identity.txt document.pdf -o document.sig
+
+# Sign from stdin
+echo "hello world" | mobi521 sign -i identity.txt &gt; signature.txt</code></pre>
+
+      <h3>Verify a Signature</h3>
+      <pre><code># Verify a file signature
+mobi521 verify -p mobi521... -s document.sig document.pdf
+
+# Verify from stdin
+echo "hello world" | mobi521 verify -p mobi521... -s signature.txt</code></pre>
+
+      <h3>Signature Format</h3>
+      <p>Signatures are base64-encoded ECDSA signatures:</p>
+      <ul>
+        <li>Algorithm: ECDSA-P521-SHA512</li>
+        <li>Nonce: Hedged (RFC 6979 + randomness)</li>
+        <li>Domain separation: <code>b"mobi-521-sign-v1\x00"</code> prepended before hashing</li>
+        <li>Output: Base64-encoded signature bytes</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <strong>Breaking Change (v0.3.0+)</strong>
+        <p>Signatures created before v0.3.0 are incompatible due to domain separation changes. All messages must be re-signed with the current version.</p>
+      </div>
+
+      <h3>Same Keys for Encryption and Signing</h3>
+      <p>mobi-521 uses the same P-521 key pair for both encryption and signing. This is secure due to:</p>
+      <ul>
+        <li>Domain separation in signing (prevents cross-protocol attacks)</li>
+        <li>Different cryptographic operations (ECDH vs ECDSA)</li>
+        <li>Different key usage contexts</li>
+      </ul>
+
+      <h3>Verification Output</h3>
+      <pre><code># Valid signature
+$ mobi521 verify -p mobi521... -s doc.sig doc.pdf
+✓ Signature is valid.
+
+# Invalid signature
+$ mobi521 verify -p mobi521... -s wrong.sig doc.pdf
+✗ Signature is NOT valid.</code></pre>
+    </section>
+
+    <!-- ── WEB UI ───────────────────────────────────────────────────────── -->
+    <section id="web-ui">
+      <h2>Web UI</h2>
+      <p>The browser-based interface runs entirely client-side via WebAssembly. No data leaves your machine.</p>
+
+      <h3>Features</h3>
+      <ul>
+        <li><strong>Key generation</strong> with downloadable identity files</li>
+        <li><strong>QR code display</strong> for both public and private keys</li>
+        <li><strong>File encryption/decryption</strong> with drag-and-drop support</li>
+        <li><strong>Text encryption/decryption</strong> for messages</li>
+        <li><strong>Digital signatures</strong> (sign and verify)</li>
+        <li><strong>Light/dark theme</strong> with persistent preference</li>
+        <li><strong>Offline operation</strong> after first load</li>
+      </ul>
+
+      <h3>Access</h3>
+      <ul>
+        <li><strong>Online</strong>: <a href="https://159.89.109.4/" target="_blank" rel="noopener">https://159.89.109.4/</a></li>
+        <li><strong>Local Docker</strong>:
+          <pre><code>docker build -f Dockerfile.web -t mobi521-web .
+docker run --rm -p 8080:80 -p 8443:443 mobi521-web
+# Open: https://localhost:8443</code></pre>
+        </li>
+        <li><strong>Local Python</strong>:
+          <pre><code>cd web
+python3 https_server.py
+# Open: https://localhost:8443</code></pre>
+        </li>
+      </ul>
+
+      <h3>Security Model</h3>
+      <p>The web UI is built with WebAssembly compiled from the same Rust code as the CLI:</p>
+      <ul>
+        <li>All cryptographic operations run in your browser</li>
+        <li>No network requests after initial load</li>
+        <li>No server-side processing</li>
+        <li>No telemetry or analytics</li>
+        <li>Keys never leave your device</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <strong>Zero-Knowledge Design</strong>
+        <p>The web server cannot access your keys or decrypt your files. All cryptography happens locally in your browser's WebAssembly sandbox.</p>
+      </div>
+
+      <h3>Tabs</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tab</th>
+            <th>Function</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Key generation</td>
+            <td>Generate new key pairs, display QR codes, download identity files</td>
+          </tr>
+          <tr>
+            <td>Encrypt</td>
+            <td>Encrypt text or files to a recipient's public key</td>
+          </tr>
+          <tr>
+            <td>Decrypt</td>
+            <td>Decrypt ciphertext or .m521 files using your private key</td>
+          </tr>
+          <tr>
+            <td>Sign & Verify</td>
+            <td>Create and verify digital signatures</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── CONFIGURATION ────────────────────────────────────────────────── -->
+    <section id="configuration">
+      <h2>Configuration</h2>
+
+      <h3>Default Recipient</h3>
+      <p>Set a default public key to encrypt to yourself without typing <code>-r</code> each time.</p>
+
+      <h4>Location</h4>
+      <pre><code>$XDG_CONFIG_HOME/mobi521/default-recipient
+# or if XDG_CONFIG_HOME is not set:
+~/.config/mobi521/default-recipient</code></pre>
+
+      <h4>Setup</h4>
+      <pre><code>mkdir -p ~/.config/mobi521
+echo "mobi521..." &gt; ~/.config/mobi521/default-recipient</code></pre>
+
+      <h4>Usage</h4>
+      <pre><code># Encrypts to default recipient
+mobi521 encrypt secret.txt -o secret.m521
+
+# Override with -r
+mobi521 encrypt -r mobi521other... secret.txt -o secret.m521</code></pre>
+
+      <h3>Environment Variables</h3>
+      <p>Currently, mobi-521 does not use environment variables for configuration. All settings are file-based or command-line flags.</p>
+    </section>
+
+    <!-- ── FILE FORMAT ──────────────────────────────────────────────────── -->
+    <section id="file-format">
+      <h2>File Format</h2>
+      <p>mobi-521 uses a custom file format (version 3) inspired by age but not compatible with it.</p>
+
+      <h3>Structure</h3>
+      <pre><code>m521.app/encrypted/v3\n
+-&gt; p521 &lt;bech32m-ephemeral-pubkey&gt;\n
+&lt;base64(encrypted-file-key)&gt;\n
+---\n
+&lt;binary STREAM payload&gt;</code></pre>
+
+      <h3>Header</h3>
+      <ul>
+        <li><strong>Magic string</strong>: <code>m521.app/encrypted/v3</code></li>
+        <li><strong>Recipient stanza</strong>: <code>-&gt; p521 &lt;ephemeral_public_key&gt;</code></li>
+        <li><strong>Encrypted file key</strong>: Base64-encoded, derived via ECDH + HKDF</li>
+        <li><strong>Separator</strong>: <code>---</code></li>
+      </ul>
+
+      <h3>Payload</h3>
+      <p>The payload uses the ChaCha20-Poly1305 STREAM construction:</p>
+      <pre><code>base_nonce (12 bytes)
+|| ChaCha20-Poly1305(chunk_0)  # 64 KiB + 16-byte tag
+|| ChaCha20-Poly1305(chunk_1)
+|| ...
+|| ChaCha20-Poly1305(final_chunk)  # ≤ 64 KiB + 16-byte tag</code></pre>
+
+      <h4>Nonce Derivation</h4>
+      <p>Per-chunk nonce = <code>base_nonce XOR (counter[8..12] || final_flag[7])</code></p>
+      <ul>
+        <li><strong>counter</strong>: 32-bit chunk counter (starts at 0)</li>
+        <li><strong>final_flag</strong>: 0x01 for last chunk, 0x00 otherwise</li>
+      </ul>
+
+      <h3>STREAM Properties</h3>
+      <ul>
+        <li><strong>Chunk size</strong>: 64 KiB (65,536 bytes)</li>
+        <li><strong>Authentication</strong>: Each chunk has a 16-byte Poly1305 tag</li>
+        <li><strong>Truncation protection</strong>: Truncated files always fail authentication due to missing final chunk flag</li>
+        <li><strong>Streaming</strong>: Can decrypt chunk-by-chunk without loading entire file into memory</li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>Why STREAM?</strong>
+        <p>The STREAM construction ensures that partial or truncated ciphertexts cannot be decrypted. If an attacker removes the end of a file, the final chunk will not have the final flag set, and decryption will fail.</p>
+      </div>
+
+      <h3>Key Derivation</h3>
+      <p>File encryption key is derived via:</p>
+      <ol>
+        <li>Generate ephemeral P-521 key pair (sender)</li>
+        <li>Perform ECDH with recipient's public key</li>
+        <li>Derive shared secret via HKDF-SHA512:
+          <ul>
+            <li><strong>IKM</strong>: ECDH output</li>
+            <li><strong>Salt</strong>: None</li>
+            <li><strong>Info</strong>: <code>b"m521.app/encrypted/v3"</code></li>
+            <li><strong>Output length</strong>: 32 bytes</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ── SECURITY ─────────────────────────────────────────────────────── -->
+    <section id="security">
+      <h2>Security Considerations</h2>
+
+      <h3>Cryptographic Primitives</h3>
+      <p>mobi-521 uses well-established, peer-reviewed cryptographic algorithms:</p>
+      <ul>
+        <li><strong>P-521</strong>: NIST standard curve, 256-bit security strength</li>
+        <li><strong>HKDF-SHA512</strong>: IETF RFC 5869 key derivation</li>
+        <li><strong>ChaCha20-Poly1305</strong>: IETF RFC 8439 AEAD</li>
+        <li><strong>ECDSA-P521-SHA512</strong>: FIPS 186-4 signatures with hedged nonces</li>
+      </ul>
+
+      <h3>Key Management Best Practices</h3>
+      <ul>
+        <li>Generate keys on a trusted, malware-free system</li>
+        <li>Store private keys encrypted at rest (use disk encryption)</li>
+        <li>Never share private keys via insecure channels (email, chat, etc.)</li>
+        <li>Use QR codes for air-gapped transfers, not network transmission</li>
+        <li>Keep multiple backups of private keys in secure locations</li>
+        <li>Consider hardware security modules (HSMs) for high-value keys</li>
+      </ul>
+
+      <h3>Forward Secrecy</h3>
+      <p>mobi-521 provides forward secrecy through ephemeral ECDH:</p>
+      <ul>
+        <li>Each encrypted file uses a unique ephemeral sender key</li>
+        <li>Compromising a recipient's private key does not decrypt past messages (if ephemeral keys are not stored)</li>
+        <li>However, the recipient's private key is reused, so compromise affects future decryption</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <strong>No Built-in Key Rotation</strong>
+        <p>mobi-521 does not enforce key rotation. For long-term security, periodically generate new key pairs and re-encrypt data.</p>
+      </div>
+
+      <h3>Metadata Leakage</h3>
+      <p>The file format reveals:</p>
+      <ul>
+        <li>Approximate plaintext size (from ciphertext length)</li>
+        <li>Ephemeral public key (not sensitive, changes per encryption)</li>
+        <li>Protocol version</li>
+      </ul>
+      <p>The format does NOT reveal:</p>
+      <ul>
+        <li>Recipient's identity or public key</li>
+        <li>Plaintext content</li>
+        <li>Sender's identity</li>
+      </ul>
+
+      <h3>Side-Channel Attacks</h3>
+      <p>mobi-521 relies on the Rust RustCrypto ecosystem for constant-time implementations:</p>
+      <ul>
+        <li>ECDH and ECDSA use constant-time field arithmetic</li>
+        <li>ChaCha20-Poly1305 is inherently resistant to timing attacks</li>
+        <li>Key comparisons use constant-time equality checks</li>
+      </ul>
+      <p>However, full side-channel resistance requires careful environment setup (no shared CPU caches, etc.).</p>
+
+      <h3>Post-Quantum Resistance</h3>
+      <p>P-521 is NOT quantum-resistant. A sufficiently powerful quantum computer running Shor's algorithm could break P-521 ECDH and ECDSA.</p>
+      <p>For post-quantum security:</p>
+      <ul>
+        <li>Wait for NIST post-quantum standards to mature</li>
+        <li>Consider hybrid encryption (classical + post-quantum)</li>
+        <li>Re-encrypt sensitive data when post-quantum algorithms are standardized</li>
+      </ul>
+
+      <div class="callout callout-danger">
+        <strong>Quantum Threat Timeline</strong>
+        <p>Large-scale quantum computers capable of breaking P-521 do not currently exist. However, data encrypted today may be stored and decrypted in the future when quantum computers are available ("harvest now, decrypt later" attacks).</p>
+      </div>
+
+      <h3>Signature Hedged Nonces</h3>
+      <p>mobi-521 uses hedged ECDSA nonces (RFC 6979 + randomness) to protect against:</p>
+      <ul>
+        <li>Weak RNG attacks</li>
+        <li>Nonce reuse (catastrophic for ECDSA)</li>
+        <li>Side-channel extraction of nonces</li>
+      </ul>
+    </section>
+
+    <!-- ── TROUBLESHOOTING ──────────────────────────────────────────────── -->
+    <section id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <h3>Clipboard Not Working</h3>
+
+      <h4>Wayland</h4>
+      <p><strong>Symptom</strong>: <code>clipboard unavailable, falling back to stdin/stdout</code></p>
+      <p><strong>Solution</strong>: Install <code>wl-clipboard</code>:</p>
+      <pre><code># Debian/Ubuntu
+sudo apt install wl-clipboard
+
+# Arch
+sudo pacman -S wl-clipboard
+
+# Fedora
+sudo dnf install wl-clipboard
+
+# Nix
+nix develop  # includes wl-clipboard</code></pre>
+
+      <h4>X11/macOS/Windows</h4>
+      <p><strong>Symptom</strong>: Clipboard operations fail or fall back to stdin/stdout</p>
+      <p><strong>Solution</strong>: Ensure display server is running and accessible. On headless systems, clipboard will not work — use stdin/stdout instead.</p>
+
+      <h3>QR PNG Not Available</h3>
+      <p><strong>Symptom</strong>: <code>--qr-png</code> flag not recognized or errors at runtime</p>
+      <p><strong>Solution</strong>: Rebuild with PNG feature enabled:</p>
+      <pre><code>cargo build --release -p mobi521 --features qr-png</code></pre>
+
+      <h3>WASM Not Loading in Web UI</h3>
+      <p><strong>Symptom</strong>: "Could not load WASM" error in browser</p>
+      <p><strong>Solution</strong>: Rebuild WebAssembly module:</p>
+      <pre><code>wasm-pack build crates/wasm --target web --out-dir ../../web/pkg</code></pre>
+      <p>Then hard-refresh the browser (Ctrl+Shift+R or Cmd+Shift+R).</p>
+
+      <h3>Decryption Fails</h3>
+
+      <h4>Wrong Private Key</h4>
+      <p><strong>Error</strong>: <code>decryption failed</code></p>
+      <p><strong>Cause</strong>: Using a different private key than the one corresponding to the recipient public key</p>
+      <p><strong>Solution</strong>: Ensure you're using the correct identity file</p>
+
+      <h4>Corrupted Ciphertext</h4>
+      <p><strong>Error</strong>: <code>authentication tag verification failed</code></p>
+      <p><strong>Cause</strong>: File was modified or truncated</p>
+      <p><strong>Solution</strong>: Obtain an uncorrupted copy of the ciphertext</p>
+
+      <h4>Version Mismatch</h4>
+      <p><strong>Error</strong>: <code>unsupported format version</code></p>
+      <p><strong>Cause</strong>: Attempting to decrypt a file encrypted with an incompatible version</p>
+      <p><strong>Solution</strong>: Use the same version of mobi-521 that created the ciphertext, or re-encrypt with current version</p>
+
+      <h3>Signature Verification Fails</h3>
+      <p><strong>Symptom</strong>: Valid signatures show as invalid</p>
+      <p><strong>Common causes</strong>:</p>
+      <ul>
+        <li>Wrong public key (not matching the signer's key)</li>
+        <li>Message was modified after signing</li>
+        <li>Signature created with old version (pre-v0.3.0 without domain separation)</li>
+        <li>Incorrect signature file or base64 decoding issue</li>
+      </ul>
+
+      <h3>Performance Issues</h3>
+
+      <h4>Large Files</h4>
+      <p>mobi-521 uses streaming encryption and should handle large files efficiently. If you experience slowness:</p>
+      <ul>
+        <li>Ensure you're using release builds (<code>--release</code> flag)</li>
+        <li>Check available disk space for output files</li>
+        <li>Monitor system resources (CPU, RAM, disk I/O)</li>
+      </ul>
+
+      <h3>Build Failures</h3>
+
+      <h4>Missing Rust Toolchain</h4>
+      <p><strong>Error</strong>: <code>cargo: command not found</code></p>
+      <p><strong>Solution</strong>: Install Rust via rustup or use Nix dev shell:</p>
+      <pre><code># rustup
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Nix
+nix develop</code></pre>
+
+      <h4>WebAssembly Build</h4>
+      <p><strong>Error</strong>: <code>wasm-pack: command not found</code></p>
+      <p><strong>Solution</strong>: Install wasm-pack:</p>
+      <pre><code>cargo install wasm-pack
+
+# Or use Docker:
+docker build -f Dockerfile.web -t mobi521-web .</code></pre>
+
+      <h3>Getting Help</h3>
+      <p>If you encounter issues not covered here:</p>
+      <ul>
+        <li>Check the <a href="https://github.com/taext/mobi-521" target="_blank" rel="noopener">GitHub repository</a> for known issues</li>
+        <li>Review the <a href="https://github.com/taext/mobi-521/blob/main/CHANGELOG.md" target="_blank" rel="noopener">changelog</a> for breaking changes</li>
+        <li>Open an issue with detailed error messages and steps to reproduce</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <p>
+      mobi-521 v0.4.1 — Built with Rust 🦀 — MIT Licensed
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <a href="landing.html">Home</a> ·
+      <a href="https://github.com/taext/mobi-521" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener">Documentation</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  /* ── theme toggle ─────────────────────────────────────────────────────── */
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('theme-btn');
+  const saved = localStorage.getItem('mobi521-theme');
+
+  // Default to light mode unless user has explicitly chosen dark
+  const defaultTheme = saved || 'light';
+  setTheme(defaultTheme);
+
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('mobi521-theme', t);
+  }
+
+  themeBtn.addEventListener('click', () =>
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  /* ── smooth scrolling + active link ───────────────────────────────────── */
+  const tocLinks = document.querySelectorAll('.toc a');
+  const sections = document.querySelectorAll('.content section');
+
+  tocLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', `#${targetId}`);
+      }
+    });
+  });
+
+  // Update active link on scroll
+  function updateActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.clientHeight;
+      if (window.scrollY >= sectionTop - 100) {
+        current = section.getAttribute('id');
+      }
+    });
+
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${current}`) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveLink);
+  updateActiveLink();
+</script>
+
+</body>
+</html>
