@@ -8,7 +8,7 @@ name = "mobi521"
 path = "src/main.rs"
 
 [features]
-default = []
+default = ["qr-png"]
 qr-png = ["qrcode/image", "image"]
 
 [dependencies]

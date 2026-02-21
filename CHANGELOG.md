@@ -2,6 +2,22 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.4.2] - 2026-02-21
+
+### Changed
+
+- **QR PNG support now enabled by default** - The `qr-png` feature is now part of default features
+  - No longer need to build with `--features qr-png`
+  - `--qr-png` flag available out of the box
+  - Users can opt-out with `--no-default-features` for smaller binary
+  - Updated all documentation to reflect this change
+
+### Documentation
+
+- Updated installation instructions across README, user guide, and landing page
+- Changed "optional feature" language to "included by default" with opt-out option
+- Updated troubleshooting section for QR PNG availability
+
 ## [0.4.1] - 2026-02-21
 
 ### Added

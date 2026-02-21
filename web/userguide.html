@@ -499,12 +499,13 @@ docker run --rm -p 8080:80 -p 8443:443 mobi521-web
 cd mobi-521
 cargo build --release -p mobi521
 
-# Optional: Build with QR PNG support
-cargo build --release -p mobi521 --features qr-png</code></pre>
+# QR PNG support is included by default
+# To build without it (smaller binary):
+cargo build --release -p mobi521 --no-default-features</code></pre>
 
       <div class="callout callout-info">
         <strong>QR PNG Feature</strong>
-        <p>The <code>--features qr-png</code> flag enables PNG export of QR codes via the <code>--qr-png</code> CLI option. Without this feature, only ASCII QR codes are supported.</p>
+        <p>PNG export of QR codes via the <code>--qr-png</code> CLI option is included by default. To build a smaller binary without PNG support, use <code>--no-default-features</code> when building.</p>
       </div>
     </section>
 
@@ -631,17 +632,14 @@ mobi521 keygen --qr --qr-png mykey
       </ul>
 
       <h3>PNG QR Codes</h3>
-      <p>Optional feature for high-quality image export.</p>
-      <pre><code># Build with PNG support
-cargo build --release -p mobi521 --features qr-png
-
-# Generate PNG QR codes
+      <p>High-quality image export (included by default).</p>
+      <pre><code># Generate PNG QR codes
 mobi521 keygen --qr --qr-png identity</code></pre>
       <ul>
         <li>200×200 pixel images (matching web UI)</li>
         <li>High contrast for reliable scanning</li>
         <li>Suitable for printing on physical media</li>
-        <li>Requires <code>--features qr-png</code> at build time</li>
+        <li>Included by default (can opt-out with <code>--no-default-features</code>)</li>
       </ul>
 
       <h3>Use Cases</h3>
@@ -1168,8 +1166,11 @@ nix develop  # includes wl-clipboard</code></pre>
 
       <h3>QR PNG Not Available</h3>
       <p><strong>Symptom</strong>: <code>--qr-png</code> flag not recognized or errors at runtime</p>
-      <p><strong>Solution</strong>: Rebuild with PNG feature enabled:</p>
-      <pre><code>cargo build --release -p mobi521 --features qr-png</code></pre>
+      <p><strong>Solution</strong>: Rebuild with default features enabled:</p>
+      <pre><code># PNG support is enabled by default
+cargo build --release -p mobi521
+
+# If you previously built with --no-default-features, remove that flag</code></pre>
 
       <h3>WASM Not Loading in Web UI</h3>
       <p><strong>Symptom</strong>: "Could not load WASM" error in browser</p>
@@ -1249,7 +1250,7 @@ docker build -f Dockerfile.web -t mobi521-web .</code></pre>
 <footer>
   <div class="container">
     <p>
-      mobi-521 v0.4.1 — Built with Rust 🦀 — MIT Licensed
+      mobi-521 v0.4.2 — Built with Rust 🦀 — MIT Licensed
     </p>
     <p style="margin-top: 0.5rem;">
       <a href="landing.html">Home</a> ·

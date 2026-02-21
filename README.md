@@ -1,4 +1,4 @@
-# mobi-521 v0.4.1
+# mobi-521 v0.4.2
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 
@@ -39,6 +39,9 @@ docker run --rm mobi521 --help
 **From source:**
 ```bash
 cargo build --release -p mobi521
+
+# Or without QR PNG support (smaller binary):
+cargo build --release -p mobi521 --no-default-features
 ```
 
 **Web UI:** Try online at [https://159.89.109.4/](https://159.89.109.4/) or run locally:

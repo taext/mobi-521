@@ -464,7 +464,7 @@
 <section class="hero">
   <div class="container narrow">
     <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
-    <div class="version-badge">v0.4.1</div>
+    <div class="version-badge">v0.4.2</div>
     <h1>mobi-521</h1>
     <p class="tagline">Modern file encryption powered by P-521 elliptic curves</p>
     <p class="subtitle">
@@ -686,9 +686,7 @@ docker run --rm -p 8080:80 -p 8443:443 mobi521-web</code></pre>
       <pre><code>git clone https://github.com/taext/mobi-521.git
 cd mobi-521
 cargo build --release -p mobi521
-
-# Optional: Build with QR PNG support
-cargo build --release -p mobi521 --features qr-png</code></pre>
+# QR PNG support included by default</code></pre>
     </div>
 
     <div style="margin-top: 3rem; text-align: center;">
@@ -706,7 +704,7 @@ cargo build --release -p mobi521 --features qr-png</code></pre>
 <footer>
   <div class="container narrow">
     <p>
-      mobi-521 v0.4.1 — Built with Rust 🦀 — MIT Licensed
+      mobi-521 v0.4.2 — Built with Rust 🦀 — MIT Licensed
     </p>
     <p style="margin-top: 0.5rem;">
       <a href="https://github.com/taext/mobi-521" target="_blank" rel="noopener">GitHub</a> ·
