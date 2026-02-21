@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elliptic Curve Cryptography Explained — mobi-521</title>
+  <style>
+    /* ── tokens ──────────────────────────────────────────────────────────── */
+    :root {
+      --bg:          #0f1117;
+      --surface:     #161b22;
+      --surface2:    #1c2128;
+      --border:      #2d333b;
+      --border-soft: #21262d;
+      --text:        #e6edf3;
+      --text-muted:  #7d8590;
+      --accent:      #4493f8;
+      --accent-dim:  #1b3a6b;
+      --green:       #3fb950;
+      --green-bg:    #0d2416;
+      --green-border:#1f4a2a;
+      --red:         #f78166;
+      --red-bg:      #2d1216;
+      --red-border:  #5c1c1c;
+      --yellow:      #d29922;
+      --yellow-bg:   #2b2413;
+      --yellow-border:#4a3d1a;
+      --purple:      #bc8cff;
+      --purple-bg:   #1f1726;
+      --purple-border:#4a2d5e;
+      --shadow:      0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.25);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.3);
+      --radius:      8px;
+      --radius-sm:   6px;
+      --transition:  0.2s ease;
+    }
+
+    [data-theme="light"] {
+      --bg:          #f5f7fa;
+      --surface:     #ffffff;
+      --surface2:    #eef1f5;
+      --border:      #d0d7de;
+      --border-soft: #e4e8ed;
+      --text:        #1a1f27;
+      --text-muted:  #6a737d;
+      --accent:      #0969da;
+      --accent-dim:  #dbeafe;
+      --green:       #1a7f37;
+      --green-bg:    #dafbe1;
+      --green-border:#96d6a0;
+      --red:         #b91c1c;
+      --red-bg:      #fee2e2;
+      --red-border:  #fca5a5;
+      --yellow:      #9a6700;
+      --yellow-bg:   #fef3c7;
+      --yellow-border:#fde047;
+      --purple:      #8250df;
+      --purple-bg:   #f3e5ff;
+      --purple-border:#d0b8ff;
+      --shadow:      0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-sm:   0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* ── reset ───────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── base ────────────────────────────────────────────────────────────── */
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ── theme toggle ────────────────────────────────────────────────────── */
+    .theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 0.5rem 0.75rem;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition), border-color var(--transition),
+                  color var(--transition), transform 0.1s;
+      z-index: 100;
+      line-height: 1;
+    }
+    .theme-toggle:hover {
+      color: var(--text);
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* ── layout ──────────────────────────────────────────────────────────── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .sidebar-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    @media (max-width: 968px) {
+      .sidebar-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .sidebar {
+        position: static !important;
+        max-height: none !important;
+        overflow: visible !important;
+      }
+    }
+
+    /* ── header ──────────────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+
+    .breadcrumb {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    .breadcrumb a:hover {
+      color: var(--text);
+    }
+
+    .breadcrumb span {
+      color: var(--text-muted);
+      margin: 0 0.5rem;
+    }
+
+    /* ── sidebar ─────────────────────────────────────────────────────────── */
+    .sidebar {
+      position: sticky;
+      top: 2rem;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toc h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    .toc ul {
+      list-style: none;
+    }
+
+    .toc li {
+      margin-bottom: 0.5rem;
+    }
+
+    .toc a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      padding: 0.25rem 0;
+      transition: color var(--transition);
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+    }
+
+    .toc a.active {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ── main content ────────────────────────────────────────────────────── */
+    .content {
+      padding-bottom: 4rem;
+    }
+
+    .content h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      color: var(--text);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .content h2:first-child {
+      margin-top: 0;
+      border-top: none;
+      padding-top: 0;
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .content h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    .content p {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+
+    .content ul, .content ol {
+      margin-bottom: 1rem;
+      padding-left: 2rem;
+      color: var(--text-muted);
+    }
+
+    .content li {
+      margin-bottom: 0.5rem;
+    }
+
+    .content strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .content em {
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .content code {
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.9em;
+      color: var(--accent);
+    }
+
+    .content pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1rem 0 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+    }
+
+    /* ── math notation ───────────────────────────────────────────────────── */
+    .math {
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--purple);
+      margin: 1.5rem 0;
+      display: block;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    .math-inline {
+      font-family: 'Courier New', monospace;
+      background: var(--surface2);
+      padding: 0.15rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.95em;
+      color: var(--purple);
+    }
+
+    /* ── callouts ────────────────────────────────────────────────────────── */
+    .callout {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-sm);
+      margin: 1.5rem 0;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .callout-warning {
+      background: var(--yellow-bg);
+      border-color: var(--yellow);
+      color: var(--text);
+    }
+
+    .callout-key {
+      background: var(--purple-bg);
+      border-color: var(--purple);
+      color: var(--text);
+    }
+
+    .callout-success {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: var(--text);
+    }
+
+    .callout strong {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .callout p {
+      color: var(--text);
+      margin: 0;
+    }
+
+    /* ── visual diagrams ─────────────────────────────────────────────────── */
+    .diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin: 1.5rem 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      overflow-x: auto;
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .diagram pre {
+      background: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: var(--text);
+    }
+
+    /* ── comparison table ────────────────────────────────────────────────── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      background: var(--surface);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    th, td {
+      padding: 0.875rem 1.25rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--surface2);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td:first-child {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── footer ──────────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 3rem 0;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+
+    /* ── highlight boxes ─────────────────────────────────────────────────── */
+    .highlight-box {
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow);
+    }
+
+    .highlight-box h4 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<button class="theme-toggle" id="theme-btn" title="Toggle light/dark mode">🌙</button>
+
+<header>
+  <div class="container">
+    <h1>Elliptic Curve Cryptography</h1>
+    <p>A pedagogical introduction to the mathematics powering mobi-521</p>
+    <div class="breadcrumb">
+      <a href="landing.html">Home</a>
+      <span>›</span>
+      <span>ECC Explained</span>
+    </div>
+  </div>
+</header>
+
+<div class="sidebar-layout">
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <nav class="toc">
+      <h3>Contents</h3>
+      <ul>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#what-is-ec">What is an Elliptic Curve?</a></li>
+        <li><a href="#point-addition">Point Addition</a></li>
+        <li><a href="#scalar-multiplication">Scalar Multiplication</a></li>
+        <li><a href="#discrete-log">The Discrete Log Problem</a></li>
+        <li><a href="#ecdh">ECDH (Key Exchange)</a></li>
+        <li><a href="#ecdsa">ECDSA (Signatures)</a></li>
+        <li><a href="#p521">Why P-521?</a></li>
+        <li><a href="#comparison">Comparing Curves</a></li>
+        <li><a href="#security">Security Considerations</a></li>
+        <li><a href="#further-reading">Further Reading</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN CONTENT ─────────────────────────────────────────────────────── -->
+  <main class="content">
+
+    <!-- ── INTRODUCTION ─────────────────────────────────────────────────── -->
+    <section id="introduction">
+      <h2>Introduction</h2>
+      <p>
+        Elliptic Curve Cryptography (ECC) is a fundamental building block of modern encryption. Unlike older systems like RSA that rely on the difficulty of factoring large numbers, ECC derives its security from the <strong>elliptic curve discrete logarithm problem</strong> — a mathematical puzzle that's computationally infeasible to solve even with powerful computers.
+      </p>
+      <p>
+        mobi-521 uses <strong>P-521</strong>, a specific elliptic curve standardized by NIST. This guide will walk you through the mathematical concepts step by step, building intuition for why elliptic curves provide such strong security with relatively small keys.
+      </p>
+
+      <div class="callout callout-info">
+        <strong>No Advanced Math Required</strong>
+        <p>While we'll touch on some mathematical concepts, this guide is designed to be accessible. We'll build understanding gradually, using visual diagrams and analogies where possible.</p>
+      </div>
+    </section>
+
+    <!-- ── WHAT IS AN ELLIPTIC CURVE ───────────────────────────────────── -->
+    <section id="what-is-ec">
+      <h2>What is an Elliptic Curve?</h2>
+
+      <p>
+        An elliptic curve is defined by a deceptively simple equation:
+      </p>
+
+      <div class="math">
+y² = x³ + ax + b
+      </div>
+
+      <p>
+        For P-521 (and most NIST curves), we use <span class="math-inline">a = -3</span> and a specific value of <span class="math-inline">b</span>. When you plot this equation, you get a symmetric curve that looks roughly like this:
+      </p>
+
+      <div class="diagram">
+        <pre>
+         y
+         |
+         |        .-"""-.
+         |     .'         `.
+         |    /             \
+    -----.---/--------------\------------ x
+         |  /                \
+         | /                  \
+         |/                    \
+         |
+         |
+        </pre>
+      </div>
+
+      <p>
+        But here's the crucial difference: <strong>we don't work with real numbers</strong>. Instead, we work with points on the curve over a <em>finite field</em> — essentially, arithmetic modulo a very large prime number.
+      </p>
+
+      <div class="highlight-box">
+        <h4>The Prime for P-521</h4>
+        <p>P-521 uses the Mersenne prime:</p>
+        <div class="math">
+p = 2<sup>521</sup> - 1
+        </div>
+        <p>This is a number with 157 decimal digits. All arithmetic on the curve happens modulo this prime, which means we're working with integers from 0 to p-1.</p>
+      </div>
+
+      <h3>Why Finite Fields?</h3>
+      <p>
+        Working over a finite field gives us two critical properties:
+      </p>
+      <ul>
+        <li><strong>Discrete structure</strong>: There are only finitely many points on the curve (approximately 2<sup>521</sup> for P-521)</li>
+        <li><strong>Computational hardness</strong>: Certain operations become one-way functions — easy to compute forward, practically impossible to reverse</li>
+      </ul>
+    </section>
+
+    <!-- ── POINT ADDITION ──────────────────────────────────────────────── -->
+    <section id="point-addition">
+      <h2>Point Addition</h2>
+
+      <p>
+        The magic of elliptic curves comes from defining an <strong>addition operation</strong> on points. Given two points P and Q on the curve, we can "add" them to get a third point R = P + Q.
+      </p>
+
+      <h3>Geometric Intuition (Over Real Numbers)</h3>
+      <p>
+        To add points P and Q:
+      </p>
+      <ol>
+        <li>Draw a line through P and Q</li>
+        <li>This line intersects the curve at a third point R'</li>
+        <li>Reflect R' across the x-axis to get R = P + Q</li>
+      </ol>
+
+      <div class="diagram">
+        <pre>
+         |
+         |     P
+         |      *
+         |       \
+         |        \    R'
+         |         *---*------- line through P and Q
+         |          \ /
+         |           * Q
+    -----|-----------------
+         |          /
+         |         * R (P+Q, reflected)
+         |
+        </pre>
+      </div>
+
+      <div class="callout callout-key">
+        <strong>Key Insight</strong>
+        <p>This geometric operation has a purely algebraic formula that works in finite fields too. The coordinates of R can be computed directly from the coordinates of P and Q using modular arithmetic.</p>
+      </div>
+
+      <h3>Special Cases</h3>
+      <ul>
+        <li><strong>Point at infinity (𝒪)</strong>: Acts as the identity element (like 0 for regular addition). P + 𝒪 = P</li>
+        <li><strong>Point doubling</strong>: Adding a point to itself (P + P) uses the tangent line instead</li>
+        <li><strong>Inverses</strong>: Every point P has an inverse -P such that P + (-P) = 𝒪</li>
+      </ul>
+    </section>
+
+    <!-- ── SCALAR MULTIPLICATION ───────────────────────────────────────── -->
+    <section id="scalar-multiplication">
+      <h2>Scalar Multiplication</h2>
+
+      <p>
+        <strong>Scalar multiplication</strong> is repeated addition. Given a point P and an integer k, we compute:
+      </p>
+
+      <div class="math">
+Q = k · P = P + P + P + ... + P    (k times)
+      </div>
+
+      <p>
+        For example:
+      </p>
+      <ul>
+        <li>3·P = P + P + P</li>
+        <li>5·P = P + P + P + P + P</li>
+        <li>100·P = P added to itself 100 times</li>
+      </ul>
+
+      <h3>Efficient Computation: Double-and-Add</h3>
+      <p>
+        Naively adding P to itself k times would be slow. Instead, we use the <strong>double-and-add algorithm</strong>, which is similar to binary exponentiation:
+      </p>
+
+      <pre><code>To compute 25·P:
+  25 in binary = 11001
+
+  Start with result = 𝒪
+  Bit 1 (leftmost):  result = P
+  Bit 1:             result = 2·result + P = 3·P
+  Bit 0:             result = 2·result = 6·P
+  Bit 0:             result = 2·result = 12·P
+  Bit 1 (rightmost): result = 2·result + P = 25·P</code></pre>
+
+      <p>
+        This takes only <span class="math-inline">O(log k)</span> operations instead of <span class="math-inline">O(k)</span>.
+      </p>
+
+      <div class="callout callout-success">
+        <strong>Forward is Fast</strong>
+        <p>Computing Q = k·P is very efficient, even for astronomically large values of k (like 2<sup>256</sup>).</p>
+      </div>
+    </section>
+
+    <!-- ── DISCRETE LOG PROBLEM ────────────────────────────────────────── -->
+    <section id="discrete-log">
+      <h2>The Discrete Logarithm Problem</h2>
+
+      <p>
+        Here's where cryptographic security comes in. Scalar multiplication is a <strong>trapdoor function</strong>:
+      </p>
+
+      <div class="highlight-box">
+        <h4>The Asymmetry</h4>
+        <p><strong>Easy direction (forward):</strong></p>
+        <p>Given k and P, compute Q = k·P → <strong>Fast!</strong></p>
+
+        <p style="margin-top: 1rem;"><strong>Hard direction (reverse):</strong></p>
+        <p>Given Q and P, find k such that Q = k·P → <strong>Computationally infeasible!</strong></p>
+      </div>
+
+      <p>
+        This reverse problem is called the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>. No efficient classical algorithm exists to solve it. The best known algorithms take exponential time — for P-521, you'd need roughly 2<sup>260</sup> operations, which is far beyond the reach of any computer.
+      </p>
+
+      <h3>Why It's Hard</h3>
+      <p>
+        Unlike regular multiplication (where you can use division to reverse it), or even modular exponentiation (where some special structure can be exploited), the elliptic curve operation provides no shortcuts. The curve's geometry, combined with the finite field arithmetic, creates a mathematical maze with no known exit.
+      </p>
+
+      <div class="callout callout-warning">
+        <strong>Quantum Threat</strong>
+        <p>Shor's algorithm (running on a large quantum computer) could solve ECDLP in polynomial time. However, such quantum computers don't currently exist. Post-quantum alternatives are being standardized for long-term security.</p>
+      </div>
+    </section>
+
+    <!-- ── ECDH ─────────────────────────────────────────────────────────── -->
+    <section id="ecdh">
+      <h2>ECDH: Elliptic Curve Diffie-Hellman</h2>
+
+      <p>
+        ECDH is a <strong>key exchange protocol</strong> that lets two parties agree on a shared secret over an insecure channel, without ever transmitting the secret itself.
+      </p>
+
+      <h3>The Protocol</h3>
+
+      <div class="diagram">
+        <pre>
+Alice                                       Bob
+------                                     -----
+Choose random secret: a                   Choose random secret: b
+Compute public key: A = a·G               Compute public key: B = b·G
+
+         Send A →
+                    ← Send B
+
+Compute shared: S = a·B                   Compute shared: S = b·A
+              = a·(b·G)                                  = b·(a·G)
+              = (a·b)·G                                  = (a·b)·G
+
+Both parties now have S = (a·b)·G as the shared secret!
+        </pre>
+      </div>
+
+      <p>
+        <strong>G</strong> is the <em>generator point</em>, a fixed point on the curve known to everyone. The crucial properties:
+      </p>
+      <ul>
+        <li>Alice's public key A = a·G can be shared publicly</li>
+        <li>Bob's public key B = b·G can be shared publicly</li>
+        <li>An eavesdropper sees A and B, but cannot compute a or b (ECDLP is hard!)</li>
+        <li>Without a or b, the eavesdropper cannot compute S = (a·b)·G</li>
+      </ul>
+
+      <div class="callout callout-key">
+        <strong>This is how mobi-521 encryption works!</strong>
+        <p>When encrypting to a recipient's public key, mobi-521 generates an ephemeral key pair, performs ECDH, and derives the file encryption key from the shared secret using HKDF-SHA512.</p>
+      </div>
+
+      <h3>Forward Secrecy</h3>
+      <p>
+        By using a fresh random value <span class="math-inline">a</span> for each encryption (ephemeral keys), mobi-521 ensures that even if your long-term private key is later compromised, past encrypted files remain secure (assuming the ephemeral private keys weren't stored).
+      </p>
+    </section>
+
+    <!-- ── ECDSA ────────────────────────────────────────────────────────── -->
+    <section id="ecdsa">
+      <h2>ECDSA: Elliptic Curve Digital Signature Algorithm</h2>
+
+      <p>
+        ECDSA provides <strong>digital signatures</strong> — proof that a message came from the holder of a specific private key, and that the message hasn't been tampered with.
+      </p>
+
+      <h3>Key Generation</h3>
+      <ul>
+        <li>Choose random private key: <span class="math-inline">d</span> (a large integer)</li>
+        <li>Compute public key: <span class="math-inline">Q = d·G</span></li>
+      </ul>
+
+      <h3>Signing (Creating a Signature)</h3>
+      <p>To sign a message <span class="math-inline">m</span> with private key <span class="math-inline">d</span>:</p>
+      <ol>
+        <li>Hash the message: <span class="math-inline">h = SHA512(domain_tag || m)</span></li>
+        <li>Choose random nonce: <span class="math-inline">k</span> (must be unique for each signature!)</li>
+        <li>Compute point: <span class="math-inline">R = k·G = (x, y)</span></li>
+        <li>Compute signature values:
+          <div class="math">
+r = x mod n
+s = k<sup>-1</sup>(h + r·d) mod n
+          </div>
+        </li>
+        <li>The signature is the pair <span class="math-inline">(r, s)</span></li>
+      </ol>
+
+      <div class="callout callout-warning">
+        <strong>Nonce Security is Critical</strong>
+        <p>If the same nonce k is used twice with the same private key, or if k can be predicted, the private key can be recovered! mobi-521 uses <strong>hedged signatures</strong> (RFC 6979 + randomness) to prevent this.</p>
+      </div>
+
+      <h3>Verification (Checking a Signature)</h3>
+      <p>Anyone with the public key <span class="math-inline">Q</span> can verify:</p>
+      <ol>
+        <li>Hash the message: <span class="math-inline">h = SHA512(domain_tag || m)</span></li>
+        <li>Compute:
+          <div class="math">
+u₁ = h·s<sup>-1</sup> mod n
+u₂ = r·s<sup>-1</sup> mod n
+          </div>
+        </li>
+        <li>Compute point: <span class="math-inline">R' = u₁·G + u₂·Q</span></li>
+        <li>Check if <span class="math-inline">R'.x mod n == r</span></li>
+      </ol>
+
+      <p>
+        If the check passes, the signature is valid! The mathematics ensures this only works if the signature was created by someone who knows the private key <span class="math-inline">d</span>.
+      </p>
+
+      <h3>Domain Separation in mobi-521</h3>
+      <p>
+        mobi-521 prepends <code>b"mobi-521-sign-v1\x00"</code> before hashing messages for signatures. This ensures that a signature created for encryption cannot be misinterpreted as a signature for a user message, preventing cross-protocol attacks.
+      </p>
+    </section>
+
+    <!-- ── WHY P-521 ───────────────────────────────────────────────────── -->
+    <section id="p521">
+      <h2>Why P-521?</h2>
+
+      <p>
+        P-521 is one of the NIST P-curves, standardized in FIPS 186-4. Here's why mobi-521 chose it:
+      </p>
+
+      <h3>1. Mersenne Prime Structure</h3>
+      <div class="math">
+p = 2<sup>521</sup> - 1
+      </div>
+      <p>
+        This special form (a Mersenne prime) allows for very efficient modular reduction. Arithmetic operations are faster than with generic primes of similar size.
+      </p>
+
+      <h3>2. Security Margin</h3>
+      <p>
+        P-521 provides approximately <strong>260 bits of security</strong>. This is substantially higher than:
+      </p>
+      <ul>
+        <li>P-256: ~128 bits of security</li>
+        <li>X25519 (Curve25519): ~128 bits of security</li>
+        <li>Ed25519: ~128 bits of security</li>
+      </ul>
+
+      <p>
+        While 128-bit security is sufficient for most applications today, P-521's higher margin provides defense-in-depth against future cryptanalytic advances and increased computational power.
+      </p>
+
+      <h3>3. Long-term Data Protection</h3>
+      <p>
+        Data encrypted today may need to remain confidential for decades. P-521's 260-bit security provides a larger buffer against:
+      </p>
+      <ul>
+        <li>Moore's Law (exponential growth in computing power)</li>
+        <li>Algorithmic improvements in solving ECDLP</li>
+        <li>"Harvest now, decrypt later" attacks where adversaries store encrypted data to decrypt in the future</li>
+      </ul>
+
+      <h3>4. Well-Studied and Standardized</h3>
+      <p>
+        As a NIST standard, P-521 has been extensively analyzed by cryptographers worldwide. While some concerns exist about potential NSA influence on the random seed used to generate curve parameters, no practical weaknesses have been discovered.
+      </p>
+
+      <div class="callout callout-info">
+        <strong>Trade-offs</strong>
+        <p>P-521 operations are slower than smaller curves like P-256 or X25519. However, for file encryption and signatures, this performance difference is negligible compared to symmetric encryption time. The security margin is worth the trade-off.</p>
+      </div>
+    </section>
+
+    <!-- ── COMPARISON ──────────────────────────────────────────────────── -->
+    <section id="comparison">
+      <h2>Comparing Elliptic Curves</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Curve</th>
+            <th>Security Level</th>
+            <th>Key Size</th>
+            <th>Used By</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>P-256</td>
+            <td>~128 bits</td>
+            <td>256 bits</td>
+            <td>TLS, Bitcoin</td>
+            <td>NIST standard, widely supported</td>
+          </tr>
+          <tr>
+            <td>P-384</td>
+            <td>~192 bits</td>
+            <td>384 bits</td>
+            <td>TLS, government</td>
+            <td>Middle ground security level</td>
+          </tr>
+          <tr>
+            <td>P-521</td>
+            <td>~260 bits</td>
+            <td>521 bits</td>
+            <td><strong>mobi-521</strong></td>
+            <td>Highest NIST security, Mersenne prime</td>
+          </tr>
+          <tr>
+            <td>Curve25519</td>
+            <td>~128 bits</td>
+            <td>255 bits</td>
+            <td>age, Signal, SSH</td>
+            <td>Designed for performance, twist-secure</td>
+          </tr>
+          <tr>
+            <td>Ed25519</td>
+            <td>~128 bits</td>
+            <td>255 bits</td>
+            <td>SSH keys, Git</td>
+            <td>Signature-optimized variant of Curve25519</td>
+          </tr>
+          <tr>
+            <td>secp256k1</td>
+            <td>~128 bits</td>
+            <td>256 bits</td>
+            <td>Bitcoin, Ethereum</td>
+            <td>Koblitz curve, efficient endomorphism</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>NIST P-curves vs Curve25519</h3>
+
+      <h4>Curve25519 Advantages:</h4>
+      <ul>
+        <li>Designed by Daniel J. Bernstein with security as the primary goal</li>
+        <li>Faster operations due to Montgomery form and field choice</li>
+        <li>Twist-secure (safe against certain implementation attacks)</li>
+        <li>No concerns about NIST/NSA influence on parameters</li>
+        <li>Simpler, harder to implement incorrectly</li>
+      </ul>
+
+      <h4>P-521 Advantages:</h4>
+      <ul>
+        <li>Significantly higher security margin (260 vs 128 bits)</li>
+        <li>Government/industry standard (FIPS 186-4)</li>
+        <li>Mersenne prime provides efficient arithmetic</li>
+        <li>Extensively studied for decades</li>
+        <li>Better for long-term data protection</li>
+      </ul>
+
+      <div class="highlight-box">
+        <h4>Why mobi-521 Chose P-521 Over X25519</h4>
+        <p>
+          While age and rage use X25519 (the Diffie-Hellman variant of Curve25519), mobi-521 prioritizes <strong>maximum security margin</strong> for long-term data protection. The performance difference is negligible for file encryption, but the 260-bit vs 128-bit security difference is substantial for data that may need to remain confidential for decades.
+        </p>
+      </div>
+    </section>
+
+    <!-- ── SECURITY CONSIDERATIONS ─────────────────────────────────────── -->
+    <section id="security">
+      <h2>Security Considerations</h2>
+
+      <h3>Random Number Generation</h3>
+      <p>
+        ECC security depends critically on high-quality randomness:
+      </p>
+      <ul>
+        <li><strong>Private keys</strong> must be uniformly random across the entire key space</li>
+        <li><strong>Ephemeral keys (ECDH)</strong> must be fresh and unpredictable for each session</li>
+        <li><strong>Signature nonces (ECDSA)</strong> must never repeat or be predictable</li>
+      </ul>
+
+      <p>
+        mobi-521 uses the operating system's cryptographically secure RNG (via Rust's <code>getrandom</code> crate). ECDSA signatures use hedged nonces (RFC 6979 + randomness) to protect against RNG failures.
+      </p>
+
+      <h3>Side-Channel Attacks</h3>
+      <p>
+        Implementation matters! Naive implementations can leak secrets through:
+      </p>
+      <ul>
+        <li><strong>Timing attacks</strong>: Different execution times for different private key bits</li>
+        <li><strong>Power analysis</strong>: Measuring power consumption during operations</li>
+        <li><strong>Cache attacks</strong>: Observing CPU cache access patterns</li>
+      </ul>
+
+      <p>
+        mobi-521 uses constant-time implementations from the RustCrypto ecosystem to mitigate timing attacks. However, full protection against sophisticated side-channel attacks requires careful operational security (secure hardware, physical isolation, etc.).
+      </p>
+
+      <h3>Quantum Computing</h3>
+      <p>
+        As mentioned earlier, <strong>Shor's algorithm</strong> can break ECDLP in polynomial time on a large quantum computer:
+      </p>
+      <ul>
+        <li>Classical security: P-521 requires ~2<sup>260</sup> operations to break</li>
+        <li>Quantum security: Shor's algorithm reduces this to ~polynomial in 521</li>
+      </ul>
+
+      <p>
+        Current quantum computers are nowhere near this capability. However, if you're encrypting data that must remain secure for 20+ years, consider:
+      </p>
+      <ul>
+        <li>Monitoring NIST's post-quantum cryptography standardization</li>
+        <li>Planning migration to post-quantum algorithms when mature</li>
+        <li>Using hybrid encryption (classical + post-quantum) for critical data</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <strong>Harvest Now, Decrypt Later</strong>
+        <p>Adversaries with quantum computing ambitions may be storing encrypted data today to decrypt in the future. For ultra-sensitive long-term data, this threat model should be considered.</p>
+      </div>
+
+      <h3>Implementation Vulnerabilities</h3>
+      <p>
+        Even with mathematically secure algorithms, implementation bugs can compromise security:
+      </p>
+      <ul>
+        <li>Buffer overflows in C implementations</li>
+        <li>Incorrect parameter validation</li>
+        <li>Weak random number generators</li>
+        <li>Reuse of ephemeral keys or nonces</li>
+      </ul>
+
+      <p>
+        mobi-521 is written in Rust, which provides memory safety guarantees and prevents many common implementation errors. The cryptographic primitives come from audited libraries (RustCrypto).
+      </p>
+    </section>
+
+    <!-- ── FURTHER READING ─────────────────────────────────────────────── -->
+    <section id="further-reading">
+      <h2>Further Reading</h2>
+
+      <h3>Books</h3>
+      <ul>
+        <li><strong>"Understanding Cryptography"</strong> by Christof Paar and Jan Pelzl — Excellent textbook with practical focus</li>
+        <li><strong>"Introduction to Modern Cryptography"</strong> by Katz and Lindell — More theoretical, rigorous treatment</li>
+        <li><strong>"Serious Cryptography"</strong> by Jean-Philippe Aumasson — Accessible introduction to modern crypto</li>
+      </ul>
+
+      <h3>Standards and RFCs</h3>
+      <ul>
+        <li><strong>FIPS 186-4</strong> — Digital Signature Standard (NIST P-curves specification)</li>
+        <li><strong>RFC 5869</strong> — HKDF (key derivation function used in mobi-521)</li>
+        <li><strong>RFC 6979</strong> — Deterministic Usage of DSA and ECDSA (hedged signatures)</li>
+        <li><strong>RFC 8439</strong> — ChaCha20-Poly1305 AEAD construction</li>
+        <li><strong>SEC 2</strong> — Recommended Elliptic Curve Domain Parameters (secp curves)</li>
+      </ul>
+
+      <h3>Academic Papers</h3>
+      <ul>
+        <li><strong>"Elliptic Curves Number Theory and Cryptography"</strong> by Lawrence C. Washington</li>
+        <li><strong>"A (Relatively Easy To Understand) Primer on Elliptic Curve Cryptography"</strong> by Nick Sullivan (Cloudflare blog)</li>
+        <li><strong>"SafeCurves: choosing safe curves for elliptic-curve cryptography"</strong> by Daniel J. Bernstein and Tanja Lange</li>
+      </ul>
+
+      <h3>Online Resources</h3>
+      <ul>
+        <li><strong>Andrea Corbellini's ECC series</strong> — Excellent visual introduction with Python examples</li>
+        <li><strong>Cloudflare Learning Center</strong> — Accessible explanations of cryptographic concepts</li>
+        <li><strong>Cryptopals Challenges</strong> — Hands-on exercises for learning cryptography through practice</li>
+      </ul>
+
+      <h3>Related mobi-521 Documentation</h3>
+      <ul>
+        <li><a href="userguide.html">User Guide</a> — Complete reference for mobi-521 features</li>
+        <li><a href="landing.html">Landing Page</a> — Overview of mobi-521 cryptographic stack</li>
+        <li><a href="https://github.com/taext/mobi-521">GitHub Repository</a> — Source code and technical details</li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <p>
+      mobi-521 v0.4.1 — Built with Rust 🦀 — MIT Licensed
+    </p>
+    <p style="margin-top: 0.5rem;">
+      <a href="landing.html">Home</a> ·
+      <a href="userguide.html">User Guide</a> ·
+      <a href="https://github.com/taext/mobi-521" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener">README</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+  /* ── theme toggle ─────────────────────────────────────────────────────── */
+  const root = document.documentElement;
+  const themeBtn = document.getElementById('theme-btn');
+  const saved = localStorage.getItem('mobi521-theme');
+
+  // Default to light mode unless user has explicitly chosen dark
+  const defaultTheme = saved || 'light';
+  setTheme(defaultTheme);
+
+  function setTheme(t) {
+    root.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('mobi521-theme', t);
+  }
+
+  themeBtn.addEventListener('click', () =>
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+  /* ── smooth scrolling + active link ───────────────────────────────────── */
+  const tocLinks = document.querySelectorAll('.toc a');
+  const sections = document.querySelectorAll('.content section');
+
+  tocLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.pushState(null, '', `#${targetId}`);
+      }
+    });
+  });
+
+  // Update active link on scroll
+  function updateActiveLink() {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop;
+      const sectionHeight = section.clientHeight;
+      if (window.scrollY >= sectionTop - 100) {
+        current = section.getAttribute('id');
+      }
+    });
+
+    tocLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === `#${current}`) {
+        link.classList.add('active');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveLink);
+  updateActiveLink();
+</script>
+
+</body>
+</html>
