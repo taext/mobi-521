@@ -4,7 +4,7 @@
 
 A file encryption tool inspired by [age](https://age-encryption.org/), rebuilt on top of **P-521 elliptic-curve cryptography** instead of X25519/Ed25519. Not interoperable with age or rage.
 
-**📚 [User Guide](web/userguide.html) · 🌐 [Landing Page](web/landing.html) · 🔗 [Try Web App](https://159.89.109.4/)**
+**📚 [User Guide](https://v1d.dk/mobi-521/userguide.html) · 🌐 [Landing Page](https://v1d.dk/mobi-521/) · 🔗 [Try Web App](https://159.89.109.4/)**
 
 <br clear="all">
 
