@@ -1027,6 +1027,51 @@ p = 2<sup>521</sup> - 1
       <p>
         mobi-521 is written in Rust, which provides memory safety guarantees and prevents many common implementation errors. The cryptographic primitives come from audited libraries (RustCrypto).
       </p>
+
+      <h3>Defense in Depth: Layered Encryption</h3>
+      <p>
+        For maximum security, mobi-521 can be used <strong>inside</strong> other encrypted communication channels, providing multiple independent layers of cryptographic protection.
+      </p>
+
+      <div class="highlight-box">
+        <h4>Practical Example: mobi-521 + Signal</h4>
+        <ol>
+          <li>Alice encrypts <code>document.pdf</code> with Bob's mobi-521 public key (P-521 ECDH)</li>
+          <li>Alice sends <code>document.m521</code> to Bob via Signal (Signal Protocol E2EE)</li>
+          <li>Bob receives the file and decrypts it with his mobi-521 private key</li>
+        </ol>
+        <p style="margin-top: 1rem; color: var(--text-muted);">
+          <strong>Result:</strong> Two independent encryption systems protect the data. Even if Signal Protocol is compromised or backdoored, the document content remains encrypted with P-521.
+        </p>
+      </div>
+
+      <h4>Why Layered Encryption Works</h4>
+      <p>
+        Different cryptographic systems have different security properties and threat models:
+      </p>
+      <ul>
+        <li><strong>Signal Protocol</strong>: Uses X25519 (Curve25519) for key exchange, providing ~128-bit security</li>
+        <li><strong>mobi-521</strong>: Uses P-521 for key exchange, providing ~260-bit security</li>
+        <li><strong>Independence</strong>: Breaking X25519 doesn't help break P-521, and vice versa</li>
+        <li><strong>Forward secrecy</strong>: Both protocols provide forward secrecy independently</li>
+      </ul>
+
+      <h4>Protection Against Real-World Threats</h4>
+      <ul>
+        <li><strong>Compromised messaging app</strong>: If Signal's codebase is compromised, content stays encrypted</li>
+        <li><strong>Forced backdoors</strong>: Governments compelling backdoors only see encrypted blobs</li>
+        <li><strong>Protocol vulnerabilities</strong>: Future bugs in Signal Protocol don't expose content</li>
+        <li><strong>Device seizure</strong>: Extracting Signal's local database still requires mobi-521 private key</li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>Zero Trust in Transport</strong>
+        <p>With layered encryption, you don't need to trust the transport layer. The .m521 file can be sent through any channel — even completely untrusted ones like unencrypted email or public cloud storage.</p>
+      </div>
+
+      <p>
+        See the <a href="userguide.html#security">User Guide Security section</a> for detailed use cases, comparison tables, and practical examples of layered encryption.
+      </p>
     </section>
 
     <!-- ── FURTHER READING ─────────────────────────────────────────────── -->

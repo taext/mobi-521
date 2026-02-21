@@ -527,6 +527,41 @@
         <p>Single binary, no external dependencies. Optional Wayland clipboard support. Runs in Docker, Nix, or standalone. WebAssembly build for browser use.</p>
       </div>
     </div>
+
+    <!-- Defense in Depth callout -->
+    <div style="margin-top: 3rem; background: var(--surface); border: 2px solid var(--accent); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow);">
+      <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 2rem;">🛡️</span>
+        Defense in Depth: Layered Encryption
+      </h3>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        For high-security scenarios, use mobi-521 <strong style="color: var(--text);">inside</strong> other encrypted channels like Signal or WhatsApp. This provides multiple independent layers of protection.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        <div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">✅ Protection Against</h4>
+          <ul style="color: var(--text-muted); font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+            <li>Messaging app compromise</li>
+            <li>Forced backdoors</li>
+            <li>Protocol vulnerabilities</li>
+            <li>Device seizure</li>
+          </ul>
+        </div>
+        <div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">🎯 Use Cases</h4>
+          <ul style="color: var(--text-muted); font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+            <li>Journalists & whistleblowers</li>
+            <li>Legal professionals</li>
+            <li>Healthcare (HIPAA)</li>
+            <li>High-threat environments</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+        <strong style="color: var(--text);">Example:</strong> Encrypt file with mobi-521 → Send .m521 via Signal → Recipient decrypts with their private key. Two independent encryption layers, each with forward secrecy.
+        <a href="userguide.html#security" style="color: var(--accent); text-decoration: none; margin-left: 0.5rem;">Learn more →</a>
+      </p>
+    </div>
   </div>
 </section>
 

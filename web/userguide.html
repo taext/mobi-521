@@ -1137,6 +1137,121 @@ mobi521 encrypt -r mobi521other... secret.txt -o secret.m521</code></pre>
         <li>Nonce reuse (catastrophic for ECDSA)</li>
         <li>Side-channel extraction of nonces</li>
       </ul>
+
+      <h3>Defense in Depth: Layered Encryption</h3>
+      <p>
+        For high-security scenarios, mobi-521 works excellently <strong>inside</strong> other encrypted communication channels. This provides multiple independent layers of protection.
+      </p>
+
+      <h4>Example: mobi-521 + Signal/WhatsApp</h4>
+      <div class="highlight-box" style="background: var(--surface); border: 2px solid var(--accent); border-radius: var(--radius); padding: 1.5rem; margin: 1.5rem 0;">
+        <h4 style="margin-top: 0; color: var(--accent);">Layered Security Approach</h4>
+        <ol style="color: var(--text-muted); margin: 0;">
+          <li><strong style="color: var(--text);">Encrypt file with mobi-521</strong> (P-521 ECDH + ChaCha20-Poly1305)</li>
+          <li><strong style="color: var(--text);">Send .m521 file via Signal/WhatsApp</strong> (Signal Protocol E2EE)</li>
+          <li><strong style="color: var(--text);">Recipient decrypts with mobi-521</strong> (requires their private key)</li>
+        </ol>
+      </div>
+
+      <h4>Benefits of Layered Encryption</h4>
+      <ul>
+        <li><strong>Multiple independent cryptographic systems</strong>: Breaking one layer doesn't compromise the other</li>
+        <li><strong>Different threat models</strong>: Protects against compromise of either encryption system</li>
+        <li><strong>Metadata separation</strong>: Messaging app sees who you're communicating with, but only encrypted blobs</li>
+        <li><strong>Forward secrecy at both layers</strong>: Signal Protocol + mobi-521 ephemeral keys</li>
+        <li><strong>Protection against backdoors</strong>: If messaging app is compromised or backdoored, content remains encrypted</li>
+        <li><strong>Regulatory resilience</strong>: Some jurisdictions may compel messaging providers to weaken encryption</li>
+      </ul>
+
+      <h4>Use Cases for Layered Encryption</h4>
+      <ul>
+        <li><strong>Journalists and sources</strong>: Protect sensitive documents even if Signal is compromised</li>
+        <li><strong>Whistleblowers</strong>: Multiple layers reduce single points of failure</li>
+        <li><strong>Legal professionals</strong>: Attorney-client privilege with technical guarantees</li>
+        <li><strong>Healthcare</strong>: HIPAA-compliant data transfer with redundant protection</li>
+        <li><strong>Activists in hostile environments</strong>: Protection against state-level adversaries</li>
+        <li><strong>Financial data</strong>: Sensitive transactions requiring maximum confidentiality</li>
+      </ul>
+
+      <h4>Alternative Secure Channels</h4>
+      <p>mobi-521 encrypted files (.m521) can be sent through any channel — you don't need to trust the transport:</p>
+      <ul>
+        <li><strong>Encrypted messaging</strong>: Signal, WhatsApp, Telegram (secret chats), Wire</li>
+        <li><strong>Email</strong>: Even unencrypted email becomes a secure transport (content is already encrypted)</li>
+        <li><strong>Cloud storage</strong>: Dropbox, Google Drive, OneDrive (zero-knowledge for provider)</li>
+        <li><strong>File sharing</strong>: WeTransfer, send.vis.ee, OnionShare</li>
+        <li><strong>Physical media</strong>: USB drives, SD cards (encrypted at rest)</li>
+        <li><strong>QR codes</strong>: Small files can be transmitted via QR code scanning</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <strong>Zero Trust in Transport</strong>
+        <p>With mobi-521, you don't need to trust the transport layer. The .m521 file is safe to send through completely untrusted channels because the content is already end-to-end encrypted with your recipient's public key.</p>
+      </div>
+
+      <h4>Practical Example</h4>
+      <pre><code># Alice encrypts sensitive document
+mobi521 encrypt -r bob_public_key document.pdf -o document.m521
+
+# Alice sends document.m521 via Signal to Bob
+# (Signal provides E2EE transport layer)
+
+# Bob receives and decrypts with his private key
+mobi521 decrypt -i bob_identity.txt document.m521 -o document.pdf
+
+# Result: Two independent encryption layers
+# - Signal Protocol protected the .m521 file in transit
+# - mobi-521 protects the document content end-to-end</code></pre>
+
+      <h4>Comparison: Single vs Layered Encryption</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Signal Only</th>
+            <th>Signal + mobi-521</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Signal Protocol compromised</td>
+            <td>❌ Content exposed</td>
+            <td>✅ Content still encrypted</td>
+          </tr>
+          <tr>
+            <td>Signal forced to add backdoor</td>
+            <td>❌ Backdoor can read content</td>
+            <td>✅ Backdoor only sees encrypted blobs</td>
+          </tr>
+          <tr>
+            <td>Device seizure (Signal DB extracted)</td>
+            <td>❌ Plaintext in local database</td>
+            <td>✅ Still need mobi-521 private key</td>
+          </tr>
+          <tr>
+            <td>Forward secrecy</td>
+            <td>✅ Signal Protocol provides it</td>
+            <td>✅✅ Both layers provide it</td>
+          </tr>
+          <tr>
+            <td>Metadata protection</td>
+            <td>⚠️ Signal sees who talks to whom</td>
+            <td>⚠️ Same (metadata same at transport layer)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>When to Use Layered Encryption</strong>
+        <p>Not every communication requires this level of security. Use layered encryption when:</p>
+        <ul style="margin: 0.5rem 0 0 0;">
+          <li>Data must remain confidential for years or decades</li>
+          <li>You're operating in a high-threat environment</li>
+          <li>Regulatory or legal requirements demand maximum protection</li>
+          <li>Single point of failure is unacceptable</li>
+          <li>You want protection against future vulnerabilities in messaging protocols</li>
+        </ul>
+      </div>
     </section>
 
     <!-- ── TROUBLESHOOTING ──────────────────────────────────────────────── -->
