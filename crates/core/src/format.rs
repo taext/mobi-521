@@ -7,7 +7,7 @@ use crate::{
     Error,
 };
 
-pub const MAGIC: &str = "mobi521.io/encrypted/v3";
+pub const MAGIC: &str = "m521.app/encrypted/v3";
 
 /// Serialised representation of an encrypted file.
 pub struct EncryptedFile {

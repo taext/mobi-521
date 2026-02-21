@@ -1,6 +1,6 @@
 target/
 web/pkg/
-*.mobi521
+*.m521
 *.txt
 *.md
 flake.*

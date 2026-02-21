@@ -527,7 +527,7 @@
         </div>
         <div class="row">
           <button onclick="copyText('enc-out', this)">Copy</button>
-          <button class="primary" onclick="downloadBlob(encBlob,'encrypted.mobi521')">Download .mobi521</button>
+          <button class="primary" onclick="downloadBlob(encBlob,'encrypted.m521')">Download .m521</button>
         </div>
       </div>
     </section>
@@ -548,8 +548,8 @@
 
       <div class="field">
         <div class="file-drop" id="dec-drop">
-          <input type="file" id="dec-file" accept=".mobi521" onchange="fileChosen('dec-file','dec-fname','dec-text',false)">
-          Drop .mobi521 file here or click to browse
+          <input type="file" id="dec-file" accept=".m521" onchange="fileChosen('dec-file','dec-fname','dec-text',false)">
+          Drop .m521 file here or click to browse
         </div>
         <div class="file-name" id="dec-fname"></div>
       </div>
@@ -741,7 +741,7 @@
     const pub = document.getElementById('kg-pub').textContent;
     const sec = document.getElementById('kg-sec').textContent;
     const text = `# mobi-521 identity file\n# public key: ${pub}\n${sec}\n`;
-    downloadBlob(new Blob([text], { type: 'text/plain' }), 'identity.mobi521key');
+    downloadBlob(new Blob([text], { type: 'text/plain' }), 'identity.m521key');
   }
 
   function fileChosen(inputId, fnameId, textareaId, asText) {

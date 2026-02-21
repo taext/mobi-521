@@ -43,7 +43,7 @@ Mount a local directory to encrypt/decrypt files:
 
 ```bash
 docker run --rm -v "$PWD":/data mobi521 \
-    encrypt -r <pubkey> /data/plaintext.txt -o /data/out.mobi521
+    encrypt -r <pubkey> /data/plaintext.txt -o /data/out.m521
 ```
 
 ### Web UI (Docker)
@@ -73,10 +73,10 @@ mobi521 keygen -o identity.txt   # write identity to file, print pubkey to stder
 
 ```bash
 # From a file
-mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.mobi521
+mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.m521
 
 # From stdin
-echo "secret" | mobi521 encrypt -r mobi521... -o encrypted.mobi521
+echo "secret" | mobi521 encrypt -r mobi521... -o encrypted.m521
 
 # From clipboard (no input file specified)
 # Copy text to clipboard, then:
@@ -106,10 +106,10 @@ mobi521 encrypt secret.txt -o secret.txt.enc
 
 ```bash
 # Using an identity file
-mobi521 decrypt -i identity.txt encrypted.mobi521
+mobi521 decrypt -i identity.txt encrypted.m521
 
 # Using a raw key string
-mobi521 decrypt -i "MOBI521-SECRET-KEY-..." encrypted.mobi521 -o plaintext.txt
+mobi521 decrypt -i "MOBI521-SECRET-KEY-..." encrypted.m521 -o plaintext.txt
 
 # From clipboard (no input file specified)
 # Copy encrypted text to clipboard, then:
@@ -151,7 +151,7 @@ echo "hello" | mobi521 verify -p mobi521... -s <base64-sig>
 ## File format
 
 ```
-mobi521.io/encrypted/v3\n
+m521.app/encrypted/v3\n
 -> p521 <bech32m-ephemeral-pubkey>\n
 <base64(encrypted-file-key)>\n
 ---\n
