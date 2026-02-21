@@ -2,7 +2,7 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
-## [Unreleased]
+## [0.4.0] - 2026-02-21
 
 ### Added
 
