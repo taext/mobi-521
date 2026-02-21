@@ -2,6 +2,42 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **CLI QR code support** - Generate QR codes for key pairs
+  - `--qr` flag displays ASCII QR codes in terminal (zero dependencies, works over SSH)
+  - `--qr-png <prefix>` saves QR codes as PNG files (requires `--features qr-png` at build time)
+  - Generates QR codes for both public and private keys
+  - Security warning displayed when showing private key QR codes
+  - PNG images are 200×200 pixels, matching the web UI
+  - Uses `qrcode` crate v0.14 for generation
+  - Optional `image` crate v0.25 for PNG support
+
+### Changed
+
+- **BREAKING: File extension changed** from `.mobi521` to `.m521` (shorter, cleaner)
+  - Updated all documentation and examples
+  - Updated web UI file picker and download buttons
+  - Identity files now download as `.m521key`
+  - QR code downloads now use `m521-public-key.png` and `m521-private-key.png`
+
+- **BREAKING: Protocol magic string** changed from `mobi521.io/encrypted/v3` to `m521.app/encrypted/v3`
+  - Invalidates all existing v3 encrypted files
+  - HKDF domain tag updated to match new magic string
+  - Pre-1.0 breaking changes are expected
+
+### Fixed
+
+- Removed duplicate public key output in `keygen` command when run without `-o` flag
+
+### Documentation
+
+- Updated `README.md` with QR code usage examples
+- Added build instructions for optional PNG support
+- Updated file format documentation with new magic string
+
 ## [0.3.1] - 2026-02-20
 
 ### Added
