@@ -8,6 +8,8 @@ use std::{
 };
 use arboard::Clipboard;
 
+mod qr;
+
 #[derive(Parser)]
 #[command(
     name = "mobi521",
@@ -27,6 +29,15 @@ enum Command {
         /// Write the identity (private key) to this file instead of stdout
         #[arg(short = 'o', long, value_name = "FILE")]
         output: Option<PathBuf>,
+
+        /// Display QR codes as ASCII art in the terminal
+        #[arg(long)]
+        qr: bool,
+
+        /// Save QR codes as PNG images (requires --qr flag)
+        /// Creates {PREFIX}_public.png and {PREFIX}_secret.png
+        #[arg(long, value_name = "PREFIX", requires = "qr")]
+        qr_png: Option<String>,
     },
 
     /// Encrypt a file or stdin for a recipient
@@ -106,7 +117,7 @@ fn main() {
 
 fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
-        Command::Keygen { output } => {
+        Command::Keygen { output, qr, qr_png } => {
             let kp = KeyPair::generate();
             let pub_str = encode_public_key(&kp.public);
             let sec_str = encode_secret_key(&kp.secret);
@@ -125,6 +136,11 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 None => {
                     println!("{}", content.trim());
                 }
+            }
+
+            // Generate QR codes if requested
+            if qr || qr_png.is_some() {
+                qr::generate_keygen_qrs(&pub_str, &sec_str, qr, qr_png.as_deref())?;
             }
         }
 

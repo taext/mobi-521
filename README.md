@@ -67,7 +67,20 @@ mobi521 keygen
 # MOBI521-SECRET-KEY-...
 
 mobi521 keygen -o identity.txt   # write identity to file, print pubkey to stderr
+
+# Generate with QR codes (ASCII art in terminal)
+mobi521 keygen --qr
+
+# Save QR codes as PNG images (requires --features qr-png at build time)
+mobi521 keygen --qr --qr-png mykey
+# Creates: mykey_public.png and mykey_secret.png
 ```
+
+**QR Code Support:**
+- `--qr`: Display QR codes as ASCII art in the terminal (works over SSH, no extra dependencies)
+- `--qr-png <prefix>`: Save QR codes as PNG images (requires building with `--features qr-png`)
+- PNG images are 200×200 pixels, matching the web UI
+- ⚠️  Warning: QR codes contain sensitive key material - clear your terminal after use
 
 ### Encrypt
 

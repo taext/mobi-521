@@ -7,7 +7,16 @@ edition = "2021"
 name = "mobi521"
 path = "src/main.rs"
 
+[features]
+default = []
+qr-png = ["qrcode/image", "image"]
+
 [dependencies]
 mobi521-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
 arboard = "3.4"
+qrcode = { version = "0.14", default-features = false }
+
+[dependencies.image]
+version = "0.25"
+optional = true
