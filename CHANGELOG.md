@@ -2,6 +2,40 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.4.3] - 2026-02-21
+
+### Added
+
+- **Defense in Depth documentation** - Comprehensive guide to layered encryption strategies
+  - Detailed section in User Guide explaining mobi-521 + Signal/WhatsApp workflows
+  - Comparison table: Signal only vs Signal + mobi-521
+  - Use cases for journalists, whistleblowers, legal professionals, healthcare, activists
+  - Alternative secure channels (messaging, email, cloud, physical media, QR codes)
+  - Prominent callout box on landing page
+  - Security considerations in ECC Explained page
+  - Zero trust transport model explanation
+
+- **ECC Explained page** - Pedagogical introduction to elliptic curve cryptography
+  - 11 detailed sections building from basics to advanced topics
+  - Visual ASCII diagrams explaining curve operations and protocols
+  - ECDH and ECDSA protocols explained step-by-step
+  - Comparison table: P-521 vs X25519, Ed25519, secp256k1
+  - Security considerations including quantum threats
+  - Math notation blocks and pedagogical callouts
+  - Further reading resources (books, RFCs, papers, online)
+
+### Changed
+
+- QR PNG support now enabled by default (from v0.4.2)
+- Updated all documentation to reflect PNG as default feature
+- Streamlined installation instructions
+
+### Documentation
+
+- Added comprehensive defense in depth strategies across all pages
+- Cross-linked all documentation pages for easy navigation
+- Positions mobi-521 as ideal for high-security scenarios
+
 ## [0.4.2] - 2026-02-21
 
 ### Changed
