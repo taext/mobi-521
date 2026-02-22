@@ -544,23 +544,11 @@ y² = x³ + ax + b
       </div>
 
       <p>
-        For P-521 (and most NIST curves), we use <span class="math-inline">a = -3</span> and a specific value of <span class="math-inline">b</span>. When you plot this equation, you get a symmetric curve that looks roughly like this:
+        For P-521 (and most NIST curves), we use <span class="math-inline">a = -3</span> and a specific value of <span class="math-inline">b</span>. When you plot this equation over real numbers, you get a symmetric curve that looks like this:
       </p>
 
-      <div class="diagram">
-        <pre>
-         y
-         |
-         |        .-"""-.
-         |     .'         `.
-         |    /             \
-    -----.---/--------------\------------ x
-         |  /                \
-         | /                  \
-         |/                    \
-         |
-         |
-        </pre>
+      <div class="diagram" style="display: flex; justify-content: center; padding: 2rem 1rem;">
+        <img src="assets/elliptic_curve_basic.svg" alt="Elliptic Curve y² = x³ + ax + b" style="max-width: 100%; height: auto; max-height: 500px;">
       </div>
 
       <p>
@@ -591,7 +579,7 @@ p = 2<sup>521</sup> - 1
       <h2>Point Addition</h2>
 
       <p>
-        The magic of elliptic curves comes from defining an <strong>addition operation</strong> on points. Given two points P and Q on the curve, we can "add" them to get a third point R = P + Q.
+        The magic of elliptic curves comes from defining an <strong>addition operation</strong> on points. Given two points P and Q on the curve, we can "add" them to get another point R' = P + Q.
       </p>
 
       <h3>Geometric Intuition (Over Real Numbers)</h3>
@@ -600,25 +588,12 @@ p = 2<sup>521</sup> - 1
       </p>
       <ol>
         <li>Draw a line through P and Q</li>
-        <li>This line intersects the curve at a third point R'</li>
-        <li>Reflect R' across the x-axis to get R = P + Q</li>
+        <li>This line intersects the curve at a third point R</li>
+        <li>Reflect R across the x-axis to get R' = P + Q</li>
       </ol>
 
-      <div class="diagram">
-        <pre>
-         |
-         |     P
-         |      *
-         |       \
-         |        \    R'
-         |         *---*------- line through P and Q
-         |          \ /
-         |           * Q
-    -----|-----------------
-         |          /
-         |         * R (P+Q, reflected)
-         |
-        </pre>
+      <div class="diagram" style="display: flex; justify-content: center; padding: 2rem 1rem;">
+        <img src="assets/point_addition.svg" alt="Point Addition on Elliptic Curve" style="max-width: 100%; height: auto; max-height: 600px;">
       </div>
 
       <div class="callout callout-key">
@@ -628,7 +603,7 @@ p = 2<sup>521</sup> - 1
 
       <h3>Special Cases</h3>
       <ul>
-        <li><strong>Point at infinity (𝒪)</strong>: Acts as the identity element (like 0 for regular addition). P + 𝒪 = P</li>
+        <li><strong>Point at infinity (𝒪)</strong>: Acts as the identity element (like 0 for regular addition). P + 𝒪 = P. Also written as O or ∞ in some texts.</li>
         <li><strong>Point doubling</strong>: Adding a point to itself (P + P) uses the tangent line instead</li>
         <li><strong>Inverses</strong>: Every point P has an inverse -P such that P + (-P) = 𝒪</li>
       </ul>
@@ -698,7 +673,7 @@ Q = k · P = P + P + P + ... + P    (k times)
       </div>
 
       <p>
-        This reverse problem is called the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>. No efficient classical algorithm exists to solve it. The best known algorithms take exponential time — for P-521, you'd need roughly 2<sup>260</sup> operations, which is far beyond the reach of any computer.
+        This reverse problem is called the <strong>Elliptic Curve Discrete Logarithm Problem (ECDLP)</strong>. No efficient classical algorithm exists to solve it. The best known generic attack is <strong>Pollard's rho algorithm</strong>, which takes O(√n) operations where n is the group order. For P-521, this means approximately 2<sup>260</sup> operations — far beyond the reach of any computer, even with all of Earth's computational resources combined for billions of years.
       </p>
 
       <h3>Why It's Hard</h3>
@@ -722,22 +697,57 @@ Q = k · P = P + P + P + ... + P    (k times)
 
       <h3>The Protocol</h3>
 
-      <div class="diagram">
-        <pre>
-Alice                                       Bob
-------                                     -----
-Choose random secret: a                   Choose random secret: b
-Compute public key: A = a·G               Compute public key: B = b·G
+      <div class="diagram" style="padding: 2rem 1rem;">
+        <svg width="700" height="380" viewBox="0 0 700 380" style="max-width: 100%; height: auto;">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="var(--accent)" />
+            </marker>
+          </defs>
 
-         Send A →
-                    ← Send B
+          <!-- Alice column -->
+          <rect x="30" y="10" width="200" height="60" rx="8" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="2"/>
+          <text x="130" y="45" fill="var(--green)" font-size="24" font-weight="700" text-anchor="middle">Alice</text>
 
-Compute shared: S = a·B                   Compute shared: S = b·A
-              = a·(b·G)                                  = b·(a·G)
-              = (a·b)·G                                  = (a·b)·G
+          <!-- Bob column -->
+          <rect x="470" y="10" width="200" height="60" rx="8" fill="var(--purple-bg)" stroke="var(--purple-border)" stroke-width="2"/>
+          <text x="570" y="45" fill="var(--purple)" font-size="24" font-weight="700" text-anchor="middle">Bob</text>
 
-Both parties now have S = (a·b)·G as the shared secret!
-        </pre>
+          <!-- Vertical lifelines -->
+          <line x1="130" y1="70" x2="130" y2="360" stroke="var(--border)" stroke-width="2" stroke-dasharray="5,5"/>
+          <line x1="570" y1="70" x2="570" y2="360" stroke="var(--border)" stroke-width="2" stroke-dasharray="5,5"/>
+
+          <!-- Alice actions -->
+          <text x="130" y="105" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">Choose random: a</text>
+          <text x="130" y="130" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">Compute: A = a·G</text>
+
+          <!-- Bob actions -->
+          <text x="570" y="105" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">Choose random: b</text>
+          <text x="570" y="130" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">Compute: B = b·G</text>
+
+          <!-- Send A arrow -->
+          <line x1="130" y1="160" x2="570" y2="160" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+          <rect x="310" y="145" width="80" height="30" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="350" y="165" fill="var(--accent)" font-size="16" font-weight="600" text-anchor="middle">Send A</text>
+
+          <!-- Send B arrow -->
+          <line x1="570" y1="210" x2="130" y2="210" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+          <rect x="310" y="195" width="80" height="30" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="350" y="215" fill="var(--accent)" font-size="16" font-weight="600" text-anchor="middle">Send B</text>
+
+          <!-- Compute shared secrets -->
+          <text x="130" y="260" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">S = a·B</text>
+          <text x="130" y="280" fill="var(--text-muted)" font-size="13" text-anchor="middle" font-family="'Courier New', monospace">= a·(b·G)</text>
+          <text x="130" y="300" fill="var(--text-muted)" font-size="13" text-anchor="middle" font-family="'Courier New', monospace">= (a·b)·G</text>
+
+          <text x="570" y="260" fill="var(--text)" font-size="14" text-anchor="middle" font-family="'Courier New', monospace">S = b·A</text>
+          <text x="570" y="280" fill="var(--text-muted)" font-size="13" text-anchor="middle" font-family="'Courier New', monospace">= b·(a·G)</text>
+          <text x="570" y="300" fill="var(--text-muted)" font-size="13" text-anchor="middle" font-family="'Courier New', monospace">= (a·b)·G</text>
+
+          <!-- Result box -->
+          <rect x="150" y="330" width="400" height="35" rx="6" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="2"/>
+          <text x="350" y="353" fill="var(--green)" font-size="15" font-weight="600" text-anchor="middle">Both parties now share S = (a·b)·G</text>
+        </svg>
       </div>
 
       <p>
@@ -755,9 +765,20 @@ Both parties now have S = (a·b)·G as the shared secret!
         <p>When encrypting to a recipient's public key, mobi-521 generates an ephemeral key pair, performs ECDH, and derives the file encryption key from the shared secret using HKDF-SHA512.</p>
       </div>
 
-      <h3>Forward Secrecy</h3>
+      <h3>Achieving Forward Secrecy</h3>
       <p>
-        By using a fresh random value <span class="math-inline">a</span> for each encryption (ephemeral keys), mobi-521 ensures that even if your long-term private key is later compromised, past encrypted files remain secure (assuming the ephemeral private keys weren't stored).
+        mobi-521 does not provide automatic forward secrecy like protocols such as Signal or TLS. If your long-term private key is compromised, an attacker can decrypt past files encrypted to that key (since your private key remains constant and the ephemeral public keys are in the ciphertext).
+      </p>
+      <p>
+        However, you can achieve forward secrecy manually through <strong>key rotation</strong>:
+      </p>
+      <ul>
+        <li>Generate new key pairs periodically (e.g., monthly, yearly)</li>
+        <li>Securely delete old private keys after re-encrypting needed files to new keys</li>
+        <li>Distribute new public keys to contacts</li>
+      </ul>
+      <p>
+        Once an old private key is securely erased, past files encrypted to that key become unrecoverable even if future keys are compromised. This approach requires discipline but provides true forward secrecy for long-term data protection.
       </p>
     </section>
 
@@ -786,13 +807,25 @@ Both parties now have S = (a·b)·G as the shared secret!
 r = x mod n
 s = k<sup>-1</sup>(h + r·d) mod n
           </div>
+          where <span class="math-inline">n</span> is the curve order
         </li>
         <li>The signature is the pair <span class="math-inline">(r, s)</span></li>
       </ol>
 
+      <div class="callout callout-info">
+        <strong>Hash Handling Detail</strong>
+        <p>ECDSA typically requires the hash to be truncated or reduced if it's longer than the curve order. For P-521, SHA-512 outputs 512 bits and the curve order is ~521 bits, so no truncation occurs. The full hash value is used directly in the signature computation. This differs from smaller curves like P-256, where SHA-512 would need to be truncated to 256 bits.</p>
+      </div>
+
       <div class="callout callout-warning">
         <strong>Nonce Security is Critical</strong>
-        <p>If the same nonce k is used twice with the same private key, or if k can be predicted, the private key can be recovered! mobi-521 uses <strong>hedged signatures</strong> (RFC 6979 + randomness) to prevent this.</p>
+        <p>If the same nonce k is used twice with the same private key, or if k can be predicted, the private key can be recovered! mobi-521 uses <strong>hedged signatures</strong> (RFC 6979 + randomness) to prevent this:</p>
+        <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+          <li><strong>RFC 6979 (deterministic component)</strong>: Derives k from the private key and message, eliminating RNG failures that could cause nonce reuse</li>
+          <li><strong>Additional randomness</strong>: Mixes in fresh entropy to defend against side-channel attacks that could exploit deterministic nonce generation</li>
+        </ul>
+        <p style="margin-top: 0.5rem;">This hybrid approach provides both robustness (no catastrophic RNG failure) and side-channel resistance (unpredictable nonces).</p>
+        <p style="margin-top: 0.5rem;"><strong>Real-world example:</strong> In 2010, Sony's PlayStation 3 firmware signing was compromised because they reused the same ECDSA nonce across multiple signatures. Hackers extracted the private signing key, allowing custom firmware installation. This catastrophic failure demonstrates why nonce security is non-negotiable in ECDSA.</p>
       </div>
 
       <h3>Verification (Checking a Signature)</h3>
@@ -834,6 +867,17 @@ p = 2<sup>521</sup> - 1
       <p>
         This special form (a Mersenne prime) allows for very efficient modular reduction. Arithmetic operations are faster than with generic primes of similar size.
       </p>
+
+      <div class="callout callout-info">
+        <strong>Why Mersenne Primes Are Fast</strong>
+        <p>Computing <span class="math-inline">x mod (2<sup>521</sup> - 1)</span> can be done with simple bit shifts and additions instead of expensive division:</p>
+        <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+          <li>Split x into two parts: high bits (above bit 521) and low bits (0-520)</li>
+          <li>Add them together: <span class="math-inline">result = low + high</span></li>
+          <li>If result ≥ p, subtract p (which is just flipping bits)</li>
+        </ul>
+        <p style="margin-top: 0.5rem;">This reduction takes only a handful of CPU cycles compared to hundreds for division by a random 521-bit prime. The 2<sup>n</sup> - 1 structure aligns perfectly with binary computer architecture.</p>
+      </div>
 
       <h3>2. Security Margin</h3>
       <p>
@@ -1050,10 +1094,10 @@ p = 2<sup>521</sup> - 1
         Different cryptographic systems have different security properties and threat models:
       </p>
       <ul>
-        <li><strong>Signal Protocol</strong>: Uses X25519 (Curve25519) for key exchange, providing ~128-bit security</li>
-        <li><strong>mobi-521</strong>: Uses P-521 for key exchange, providing ~260-bit security</li>
+        <li><strong>Signal Protocol</strong>: Uses X25519 (Curve25519) for key exchange, providing ~128-bit security and automatic forward secrecy</li>
+        <li><strong>mobi-521</strong>: Uses P-521 for key exchange, providing ~260-bit security (forward secrecy requires manual key rotation)</li>
         <li><strong>Independence</strong>: Breaking X25519 doesn't help break P-521, and vice versa</li>
-        <li><strong>Forward secrecy</strong>: Both protocols provide forward secrecy independently</li>
+        <li><strong>Complementary protection</strong>: Signal protects transport with forward secrecy; mobi-521 adds long-term content protection with higher security margin</li>
       </ul>
 
       <h4>Protection Against Real-World Threats</h4>
