@@ -562,6 +562,54 @@
         <a href="userguide.html#security" style="color: var(--accent); text-decoration: none; margin-left: 0.5rem;">Learn more →</a>
       </p>
     </div>
+
+    <!-- Physical Key Cards callout -->
+    <div style="margin-top: 3rem; background: var(--surface); border: 2px solid var(--green-border); border-radius: var(--radius); padding: 2rem; box-shadow: var(--shadow);">
+      <h3 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--green); display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 2rem;">🎴</span>
+        Physical Key Cards — Durable Offline Backup
+      </h3>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">
+        Generate printable PDF key cards with QR codes for physical backup. Unlike any other encryption tool (age/rage/GPG), mobi-521 creates professional pocket-sized key cards ready for lamination.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; align-items: start;">
+        <div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">✅ Use Cases</h4>
+          <ul style="color: var(--text-muted); font-size: 0.9rem; margin: 0; padding-left: 1.5rem;">
+            <li>Fire-proof physical backup in safe</li>
+            <li>In-person key exchange at conferences</li>
+            <li>Air-gapped cold storage</li>
+            <li>Emergency recovery from hardware failure</li>
+          </ul>
+          <pre style="margin-top: 1rem; font-size: 0.8rem;"><code># Generate key card PDF
+mobi521 keygen --card-pdf mykey
+
+# Creates: mykey-card.pdf (85×55mm)
+# Print, laminate, store securely</code></pre>
+        </div>
+        <div style="text-align: center;">
+          <a href="example-keycard.pdf" target="_blank" style="display: block; background: var(--surface2); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 2rem; transition: all var(--transition); text-decoration: none; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--green)'; this.style.transform='translateY(-4px)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📄</div>
+            <div style="color: var(--text); font-weight: 600; margin-bottom: 0.5rem;">Example Key Card PDF</div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">85mm × 55mm • 2 cards per page</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 300px; margin: 1rem auto; text-align: left; font-size: 0.8rem;">
+              <div style="background: rgba(63, 185, 80, 0.1); padding: 0.75rem; border-radius: 4px; border-left: 3px solid var(--green);">
+                <div style="color: var(--green); font-weight: 600; margin-bottom: 0.25rem;">🟢 PUBLIC</div>
+                <div style="color: var(--text-muted); font-size: 0.75rem;">Green QR<br>Safe to share</div>
+              </div>
+              <div style="background: rgba(247, 129, 102, 0.1); padding: 0.75rem; border-radius: 4px; border-left: 3px solid var(--red);">
+                <div style="color: var(--red); font-weight: 600; margin-bottom: 0.25rem;">🔴 PRIVATE</div>
+                <div style="color: var(--text-muted); font-size: 0.75rem;">Red QR<br>Keep secure</div>
+              </div>
+            </div>
+            <div style="color: var(--green); font-weight: 600; margin-top: 1rem;">Click to view PDF →</div>
+          </a>
+        </div>
+      </div>
+      <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted);">
+        <strong style="color: var(--text);">Pro tip:</strong> Green QR = public key (safe to share). Red QR = private key (keep secure, never photograph unencrypted).
+      </p>
+    </div>
   </div>
 </section>
 

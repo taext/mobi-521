@@ -608,7 +608,7 @@ mobi521 keygen --qr --qr-png mykey
       </div>
 
       <h3>Printable Key Cards</h3>
-      <p>Generate professional A4 PDF key cards for physical backup and in-person key exchange.</p>
+      <p>Generate professional pocket-sized PDF key cards for physical backup and in-person key exchange. Cards are printed on A4 paper and cut to size (85mm × 55mm).</p>
       <pre><code># Generate 2 identical cards on one A4 page
 mobi521 keygen --card-pdf keycard.pdf
 
@@ -617,6 +617,26 @@ mobi521 keygen --card-pdf keycard.pdf --single-card
 
 # Generate 2 different keypairs on one page
 mobi521 keygen --card-pdf keycard.pdf --dual-keys</code></pre>
+
+      <div class="callout callout-success" style="margin: 1.5rem 0;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: center;">
+          <div>
+            <strong>📄 Example Key Card PDF</strong>
+            <p style="margin-top: 0.5rem;">See what a generated key card looks like. The PDF shows pocket-sized cards (85mm × 55mm when cut) with color-coded QR codes:</p>
+            <ul style="margin: 0.75rem 0; padding-left: 1.5rem; font-size: 0.9rem;">
+              <li><strong style="color: var(--green);">🟢 Green QR</strong> — Public key (safe to share)</li>
+              <li><strong style="color: var(--red);">🔴 Red QR</strong> — Private key (keep secure)</li>
+            </ul>
+          </div>
+          <div style="text-align: center;">
+            <a href="example-keycard.pdf" target="_blank" style="display: inline-block; background: var(--surface2); border: 2px solid var(--border); border-radius: 6px; padding: 1.5rem 1rem; text-decoration: none; transition: all 0.2s; box-shadow: var(--shadow-sm);" onmouseover="this.style.borderColor='var(--green)'; this.style.transform='scale(1.05)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='scale(1)'">
+              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📄</div>
+              <div style="color: var(--text); font-weight: 600; font-size: 0.9rem;">View Example</div>
+              <div style="color: var(--green); font-size: 0.8rem; margin-top: 0.25rem;">Open PDF →</div>
+            </a>
+          </div>
+        </div>
+      </div>
 
       <p>Each key card features:</p>
       <ul>
@@ -638,6 +658,15 @@ mobi521 keygen --card-pdf keycard.pdf --dual-keys</code></pre>
         <strong>Web UI Support</strong>
         <p>The web app includes a "Download Key Card PDF" button that generates the same printable key cards directly in your browser — no CLI needed.</p>
       </div>
+
+      <h3>Key Card Use Cases</h3>
+      <ul>
+        <li><strong>Fire-proof physical backup</strong>: Laminate and store in a safe or safety deposit box</li>
+        <li><strong>In-person key exchange</strong>: Share public keys at conferences, meetups, or IRL meetings</li>
+        <li><strong>Air-gapped cold storage</strong>: Offline backup that can't be remotely compromised</li>
+        <li><strong>Emergency recovery</strong>: Restore keys after hardware failure or device loss</li>
+        <li><strong>Unique to mobi-521</strong>: No other encryption tool (age/rage/GPG) offers printable key cards</li>
+      </ul>
 
       <h3>Key Format</h3>
       <ul>
