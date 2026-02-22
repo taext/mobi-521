@@ -1049,7 +1049,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "arboard",
  "chrono",
@@ -1062,7 +1062,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-core"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "base64ct",
  "bech32",
@@ -1080,7 +1080,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-wasm"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "console_error_panic_hook",
  "getrandom 0.2.17",
