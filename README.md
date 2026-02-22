@@ -1,4 +1,4 @@
-# mobi-521 v0.4.3
+# mobi-521 v0.4.4
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 
@@ -58,6 +58,9 @@ mobi521 keygen
 mobi521 keygen -o identity.txt        # save to file
 mobi521 keygen --qr                   # with QR codes (ASCII)
 mobi521 keygen --qr --qr-png mykey    # with PNG QR codes
+mobi521 keygen --card-pdf card.pdf    # printable key card (A4, 2 cards)
+mobi521 keygen --card-pdf card.pdf --single-card   # single card
+mobi521 keygen --card-pdf card.pdf --dual-keys     # 2 different keypairs
 
 # Encrypt a file
 mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.m521
@@ -75,6 +78,7 @@ mobi521 verify -p mobi521... -s document.sig document.txt
 **Features:**
 - Clipboard integration (Wayland/X11/macOS/Windows)
 - QR codes for keys (ASCII terminal + optional PNG export)
+- Printable key cards (A4 PDF, bifold design with QR codes)
 - Default recipient configuration (`~/.config/mobi521/default-recipient`)
 - Stdin/stdout piping support
 

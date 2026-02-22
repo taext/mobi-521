@@ -607,6 +607,38 @@ mobi521 keygen --qr --qr-png mykey
         <p>QR codes of private keys contain your entire identity. Treat PNG files with private key QR codes with the same security as the private key itself. Do not share, upload to cloud services, or print without secure storage.</p>
       </div>
 
+      <h3>Printable Key Cards</h3>
+      <p>Generate professional A4 PDF key cards for physical backup and in-person key exchange.</p>
+      <pre><code># Generate 2 identical cards on one A4 page
+mobi521 keygen --card-pdf keycard.pdf
+
+# Generate a single card (no duplicate)
+mobi521 keygen --card-pdf keycard.pdf --single-card
+
+# Generate 2 different keypairs on one page
+mobi521 keygen --card-pdf keycard.pdf --dual-keys</code></pre>
+
+      <p>Each key card features:</p>
+      <ul>
+        <li><strong>Bifold design</strong>: 210×148.5mm cards that fold vertically at 105mm</li>
+        <li><strong>Left panel</strong>: Public key with green QR code labeled "SCAN & SHARE"</li>
+        <li><strong>Right panel</strong>: Private key with red QR code labeled "KEEP SECURE"</li>
+        <li><strong>Bech32 strings</strong>: Full keys printed in monospace font for manual entry</li>
+        <li><strong>Blank KEY NAME field</strong>: Space to write a custom label by hand</li>
+        <li><strong>Scandinavian minimal design</strong>: Clean typography with ample whitespace</li>
+      </ul>
+
+      <p><strong>Default (2 identical cards):</strong> Print, cut along the stippled line, and keep one card while giving/storing the duplicate as backup.</p>
+
+      <p><strong>Single card (--single-card):</strong> One card without cut line, ideal for solo backup.</p>
+
+      <p><strong>Dual keys (--dual-keys):</strong> Two different keypairs on one page. Both keys are printed to stderr for safekeeping. Useful for generating keys for two people/devices at once.</p>
+
+      <div class="callout callout-info">
+        <strong>Web UI Support</strong>
+        <p>The web app includes a "Download Key Card PDF" button that generates the same printable key cards directly in your browser — no CLI needed.</p>
+      </div>
+
       <h3>Key Format</h3>
       <ul>
         <li><strong>Public keys</strong> start with <code>mobi521</code> (lowercase)</li>
@@ -645,7 +677,7 @@ mobi521 keygen --qr --qr-png identity</code></pre>
       <h3>Use Cases</h3>
       <ul>
         <li><strong>Air-gapped transfers</strong>: Scan QR codes to transfer keys between offline devices</li>
-        <li><strong>Physical backup</strong>: Print and laminate QR codes for durable storage</li>
+        <li><strong>Physical backup</strong>: Print and laminate QR codes for durable storage (see also: <a href="#keygen">Printable Key Cards</a>)</li>
         <li><strong>Key exchange</strong>: Share public keys in person at conferences or meetups</li>
         <li><strong>Mobile import</strong>: Scan keys into mobile apps or password managers</li>
       </ul>

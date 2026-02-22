@@ -1,0 +1,206 @@
+Her er en design-beskrivelse/spec, skrevet så Claude Code kan omsætte den direkte til en automatiseret PDF-generator (fx HTML/CSS→PDF eller programmatisk PDF). Den følger layoutet i billedet: åben, minimalistisk bifold, venstre “Public Key”, højre “Private Key”, QR’er, label-tekster og meta i nederste højre hjørne.
+
+1) Dokumentformat og print-spec
+
+Formål: Printklar nøgle-folder (bifold) med 2 indersider (venstre/højre) på én side.
+
+Papirstørrelse: A4 (210 × 297 mm), landskab
+
+Bleed: 3 mm på alle sider (hvis tryk).
+
+Safe margin: 12 mm fra trim (alt vigtigt indhold holdes indenfor).
+
+Fold: Lodret midtlinje ved A4 midt (x = 148.5 mm fra venstre trim).
+
+Paneler:
+
+Venstre panel: x ∈ [0 … 148.5mm]
+
+Højre panel: x ∈ [148.5 … 297mm]
+
+Baggrund: Hvid (papir). Ingen rammer.
+Fold-indikator (valgfri i PDF): meget lys hårfin linje (5–10% sort) på folden eller ingen, afhængigt af ønsket.
+
+2) Visuelt udtryk
+
+Stil: Scandinavian minimal, masser af whitespace, præcis typografi, ingen branding udover indholdet.
+
+Farver:
+
+Tekst/ikoner: #111 eller #000 (næsten sort).
+
+Hårfine skillelinjer: #D9D9D9 (lys grå).
+
+Public QR accent: grøn #1F7A3A (eller tilsvarende dyb grøn).
+
+Private QR accent: rød #C62828 (eller tilsvarende dyb rød).
+
+Papirtekstur: I “produktfoto” er der tekstur, men i PDF skal det være rent/hvidt. (Evt. meget subtil støj som optional, men standard: ingen tekstur.)
+
+3) Typografi
+
+Brug en ren sans-serif (fx Inter, Helvetica, SF Pro) + monospace (fx IBM Plex Mono, SF Mono, Menlo).
+
+Tekststørrelser (vejledende):
+
+Sektionstitel (“PUBLIC KEY”, “PRIVATE KEY”): 13–15 pt, uppercase, tracking/letter-spacing +0.10em.
+
+Monospace key-linjer: 9.5–10.5 pt, line-height 1.35–1.5, farve #222.
+
+QR-label (“SCAN & SHARE”, “KEEP SECURE”): 10–11 pt, uppercase, tracking +0.08–0.12em.
+
+Meta nederst (KEY NAME/DATE): 9–10 pt sans, label i semibold.
+
+Vægt:
+
+Titler: Medium/Semibold
+
+Brød/mono: Regular
+
+Meta labels (“KEY NAME:”, “DATE:”): Semibold, værdier Regular.
+
+4) Grid og alignment (meget vigtigt)
+
+Designet skal føles “centeret i hver side” med ens top-offset og konsekvent vertikal rytme.
+
+Fælles for begge paneler:
+
+Arbejdsområde pr. panel:
+
+Panel bredde: 148.5 mm
+
+Indvendig side-margin: 18 mm (fra panel-kant, ikke fra papirkant)
+
+Indholdets hovedkolonne: centreret i panelet (horisontalt).
+
+Standard kolonnebredde: ca. 110–112 mm (så der er luft i siderne).
+
+Alle top-ikoner og titler er centreret.
+
+Vertikal struktur pr. panel:
+
+Ikon (øverst)
+
+Titel
+
+Hårfin divider-linje (tynd grå) under titel (samme på begge sider)
+
+Key-tekst (monospace) i flere linjer
+
+QR-kode (center)
+
+QR-label (center)
+
+(Kun højre side) Meta nederst til højre + hårfin linje over meta
+
+5) Element-specifikationer (mål kan skaleres let, men hold proportioner)
+
+Nedenstående mål er “print-venlige” og kan oversættes til px via 72/96 DPI afhængigt af pipeline.
+
+5.1 Fold / midterlinje
+
+Fold: x = 148.5 mm.
+
+Hvis fold-linje tegnes: 0.25 pt, #E6E6E6, hele sidens højde.
+
+5.2 Ikoner
+
+Stil: minimalistiske outline/filled, ens stregtykkelse.
+
+Størrelse: 8–10 mm høj.
+
+Placering: centreret i panelet, top-offset ~ 18–22 mm fra top trim.
+
+Venstre ikon: “key”
+Højre ikon: “lock”
+
+5.3 Titler
+
+“PUBLIC KEY” / “PRIVATE KEY”
+
+Centreret, lige under ikon.
+
+Afstand ikon→titel: 4–6 mm.
+
+Afstand titel→divider: 6–8 mm.
+
+5.4 Divider-linje under titel
+
+Længde: ca. 70–80% af kolonnebredden (fx 80–90 mm).
+
+Tykkelse: 0.25–0.5 pt.
+
+Farve: #DADADA
+
+Centreret.
+
+5.5 Key-tekst (monospace)
+
+Centreret blok (tekstjustering center), monospaced font.
+
+Maks bredde: 95–105 mm (så det ikke føles presset).
+
+Split i “rene” linjer (automatisk wrap eller fast antal tegn per linje).
+
+Afstand divider→keyblok: 10–12 mm.
+
+Afstand keyblok→QR: 12–16 mm.
+
+Public key: 3–4 linjer, jævn spacing.
+Private key: flere linjer (5–7), stadig luftigt.
+
+5.6 QR-koder
+
+Størrelse: 38–45 mm (kvadrat).
+
+Centreret i panelet.
+
+Farver:
+
+Public: grøn (#1F7A3A), hvid baggrund.
+
+Private: rød (#C62828), hvid baggrund.
+
+Quiet zone: minimum 4 moduler (standard QR).
+
+5.7 QR-labels
+
+Under QR, centreret.
+
+Afstand QR→label: 6–8 mm.
+
+“SCAN & SHARE” i grøn nuance (match QR, evt. lidt mørkere).
+
+“KEEP SECURE” i rød nuance (match QR).
+
+5.8 Meta nederst (kun højre panel)
+
+Placering: nederst til højre i højre panel, men indenfor safe margin.
+
+En hårfin vandret linje over meta-blokken:
+
+0.25–0.5 pt, #DADADA
+
+Længde: 55–75 mm
+
+Right-aligned til meta-blokkens højre kant.
+
+Meta tekst (2 linjer):
+
+Linje 1: KEY NAME: Cold Storage Key
+
+Linje 2: DATE: 24 April 2024
+
+Justering: højrejusteret.
+
+Afstand fra bund: 14–18 mm til nederste baseline.
+
+Afstand mellem linjer: 4–5 mm.
+
+6) Data-input og automatisering (så Claude kan kode generatoren)
+
+Input-JSON (eksempel):
+
+{
+  "publicKey": "mobi5211qvq9us9mg0yatdw953rk4tacav8ue2ru7rnnpayjh7ra9fghexkayjrn6k740ntnt8hhmez034n5x64fxy9fru3awucensj44gr6asln9egskywwyd",
+

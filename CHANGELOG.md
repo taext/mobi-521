@@ -2,6 +2,19 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.4.4] - 2026-02-22
+
+### Added
+
+- **Printable key cards** - Generate professional A4 PDF key cards for physical backup and key exchange
+  - Bifold design (210×148.5mm per card, folds at 105mm)
+  - Public key (green QR) and private key (red QR) with bech32 strings
+  - Three CLI variants: `--card-pdf` (2 identical cards), `--card-pdf --single-card` (1 card), `--card-pdf --dual-keys` (2 different keypairs)
+  - Web UI: "Download Key Card PDF" button generates matching PDFs in browser
+  - Scandinavian minimal design with proper typography and spacing
+  - Blank KEY NAME field for manual labeling
+  - Stippled cut line for easy separation of duplicate cards
+
 ## [0.4.3] - 2026-02-21
 
 ### Added

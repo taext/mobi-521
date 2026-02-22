@@ -9,6 +9,7 @@ use std::{
 use arboard::Clipboard;
 
 mod qr;
+mod pdf;
 
 #[derive(Parser)]
 #[command(
@@ -37,6 +38,18 @@ enum Command {
         /// Save QR codes as PNG images. Creates {PREFIX}_public.png and {PREFIX}_secret.png
         #[arg(long, value_name = "PREFIX", requires = "qr")]
         qr_png: Option<String>,
+
+        /// Generate a printable key card PDF (A4 portrait with bifold cards)
+        #[arg(long, value_name = "FILE")]
+        card_pdf: Option<PathBuf>,
+
+        /// Generate only a single card instead of two (use with --card-pdf)
+        #[arg(long, requires = "card_pdf")]
+        single_card: bool,
+
+        /// Generate two cards with different keypairs (use with --card-pdf)
+        #[arg(long, requires = "card_pdf", conflicts_with = "single_card")]
+        dual_keys: bool,
     },
 
     /// Encrypt a file or stdin for a recipient
@@ -116,7 +129,7 @@ fn main() {
 
 fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     match cli.command {
-        Command::Keygen { output, qr, qr_png } => {
+        Command::Keygen { output, qr, qr_png, card_pdf, single_card, dual_keys } => {
             let kp = KeyPair::generate();
             let pub_str = encode_public_key(&kp.public);
             let sec_str = encode_secret_key(&kp.secret);
@@ -140,6 +153,33 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             // Generate QR codes if requested
             if qr || qr_png.is_some() {
                 qr::generate_keygen_qrs(&pub_str, &sec_str, qr, qr_png.as_deref())?;
+            }
+
+            // Generate key card PDF if requested
+            if let Some(pdf_path) = card_pdf {
+                if single_card {
+                    // Generate single card
+                    pdf::generate_key_card_pdf_single(&pub_str, &sec_str, &pdf_path)?;
+                } else if dual_keys {
+                    // Generate two cards with different keypairs
+                    let kp2 = KeyPair::generate();
+                    let pub_str2 = encode_public_key(&kp2.public);
+                    let sec_str2 = encode_secret_key(&kp2.secret);
+
+                    // Print second keypair to stderr
+                    eprintln!("\nSecond keypair generated:");
+                    eprintln!("Public key:  {}", pub_str2);
+                    eprintln!("Secret key:  {}", sec_str2);
+
+                    pdf::generate_key_card_pdf_dual(
+                        &pub_str, &sec_str,
+                        &pub_str2, &sec_str2,
+                        &pdf_path
+                    )?;
+                } else {
+                    // Default: two identical cards
+                    pdf::generate_key_card_pdf(&pub_str, &sec_str, &pdf_path)?;
+                }
             }
         }
 

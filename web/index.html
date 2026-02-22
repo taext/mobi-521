@@ -429,7 +429,7 @@
   <header>
     <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
     <p class="tagline">
-      v0.4.3 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
+      v0.4.4 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
     </p>
     <p style="text-align: center; margin-top: 0.75rem;">
       <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-size: 0.82rem; transition: color var(--transition);">
@@ -488,6 +488,7 @@
 
       <div style="margin-top:1.1rem">
         <button class="primary" onclick="doKeygen()">Generate new key pair</button>
+        <button onclick="downloadKeyCardPDF()" id="kg-pdf-btn" style="display:none">Download Key Card PDF</button>
       </div>
     </section>
 
@@ -635,6 +636,7 @@
 </div><!-- .container -->
 
 <script src="qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <!-- ── WASM init ─────────────────────────────────────────────────────────── -->
 <script type="module">
@@ -792,6 +794,200 @@
     a.click();
   };
 
+  /* ── PDF key card generation ──────────────────────────────────────────────*/
+  window.downloadKeyCardPDF = async function () {
+    if (!window._currentKeyPair) {
+      alert('No keypair generated yet');
+      return;
+    }
+
+    const { publicKey, privateKey } = window._currentKeyPair;
+
+    // Generate PDF with 2 identical cards (A4 portrait)
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const cardHeight = 148.5; // Half of A4 height
+    const foldX = 105.0; // Fold line (half of width)
+
+    // Draw top card (starts at y=0, top of page)
+    await drawKeyCard(pdf, publicKey, privateKey, 0);
+
+    // Draw bottom card (starts at y=148.5, middle of page)
+    await drawKeyCard(pdf, publicKey, privateKey, cardHeight);
+
+    // Draw stippled cut line between cards
+    drawStippledLine(pdf, 0, cardHeight, 210);
+
+    // Save PDF
+    const date = new Date().toISOString().split('T')[0];
+    pdf.save(`mobi521-keycard-${date}.pdf`);
+  };
+
+  async function drawKeyCard(pdf, publicKey, privateKey, offsetY) {
+    const foldX = 105.0;
+    const panelWidth = foldX;
+    const cardHeight = 148.5;
+    const topOffset = 12.0;
+    const safeMargin = 8.0;
+
+    // === LEFT PANEL: PUBLIC KEY ===
+    const leftCenterX = panelWidth / 2.0;
+
+    // Title "PUBLIC KEY" (jsPDF uses top-down coordinates)
+    const titleY = offsetY + topOffset + 5.0;
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('PUBLIC KEY', leftCenterX, titleY, { align: 'center' });
+
+    // Divider line under title
+    const dividerY = titleY + 5.0;
+    const dividerWidth = 60.0;
+    pdf.setDrawColor(217, 217, 217);
+    pdf.setLineWidth(0.4);
+    pdf.line(leftCenterX - dividerWidth/2, dividerY, leftCenterX + dividerWidth/2, dividerY);
+
+    // Public key text (monospace, split into lines)
+    const keyYStart = dividerY + 8.0;
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(7.5);
+    const pubKeyLines = splitKeyString(publicKey, 25);
+    pubKeyLines.forEach((line, i) => {
+      const lineY = keyYStart + (i * 3.5);
+      pdf.text(line, leftCenterX, lineY, { align: 'center' });
+    });
+
+    // QR code (public key) - green
+    const qrSize = 30.0;
+    const qrY = keyYStart + (pubKeyLines.length * 3.5) + 10.0;
+    await addQRCode(pdf, publicKey, leftCenterX - qrSize/2, qrY, qrSize, [31, 122, 58]); // Green #1F7A3A
+
+    // QR label "SCAN & SHARE"
+    const qrLabelY = qrY + qrSize + 5.0;
+    pdf.setFontSize(8.5);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(31, 122, 58); // Green
+    pdf.text('SCAN & SHARE', leftCenterX, qrLabelY, { align: 'center' });
+    pdf.setTextColor(0, 0, 0); // Reset to black
+
+    // === RIGHT PANEL: PRIVATE KEY ===
+    const rightCenterX = foldX + panelWidth / 2.0;
+
+    // Title "PRIVATE KEY"
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(11);
+    pdf.text('PRIVATE KEY', rightCenterX, titleY, { align: 'center' });
+
+    // Divider line under title
+    pdf.setDrawColor(217, 217, 217);
+    pdf.setLineWidth(0.4);
+    pdf.line(rightCenterX - dividerWidth/2, dividerY, rightCenterX + dividerWidth/2, dividerY);
+
+    // Private key text (monospace, split into lines)
+    pdf.setFont('courier', 'normal');
+    pdf.setFontSize(7.5);
+    const secKeyLines = splitKeyString(privateKey, 25);
+    secKeyLines.forEach((line, i) => {
+      const lineY = keyYStart + (i * 3.5);
+      pdf.text(line, rightCenterX, lineY, { align: 'center' });
+    });
+
+    // QR code (private key) - red
+    await addQRCode(pdf, privateKey, rightCenterX - qrSize/2, qrY, qrSize, [200, 40, 40]); // Red #C62828
+
+    // QR label "KEEP SECURE"
+    pdf.setFontSize(8.5);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(200, 40, 40); // Red
+    pdf.text('KEEP SECURE', rightCenterX, qrLabelY, { align: 'center' });
+    pdf.setTextColor(0, 0, 0); // Reset to black
+
+    // Meta data (bottom right corner) - using top-down coordinates
+    const metaX = 210.0 - safeMargin - 3.0;
+    // In top-down: bottom of card is at offsetY + cardHeight
+    // KEY NAME baseline is safeMargin + 5mm from bottom
+    const metaY_keyname = offsetY + cardHeight - safeMargin - 5.0;
+    const metaY_date = offsetY + cardHeight - safeMargin - 11.0;
+    const metaY_divider = offsetY + cardHeight - safeMargin - 18.0;
+
+    // Meta divider line (above the text)
+    const metaDividerWidth = 45.0;
+    pdf.setDrawColor(217, 217, 217);
+    pdf.setLineWidth(0.4);
+    pdf.line(metaX - metaDividerWidth, metaY_divider, metaX, metaY_divider);
+
+    // Meta text
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(7.5);
+    const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    pdf.text(`DATE: ${date}`, metaX, metaY_date, { align: 'right' });
+    pdf.text('KEY NAME: _____________________', metaX, metaY_keyname, { align: 'right' });
+
+    // Draw fold line (very light)
+    pdf.setDrawColor(230, 230, 230);
+    pdf.setLineWidth(0.25);
+    pdf.line(foldX, offsetY, foldX, offsetY + cardHeight);
+  }
+
+  function addQRCode(pdf, data, x, y, size, color) {
+    return new Promise((resolve) => {
+      // Create temporary div to generate QR code
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      document.body.appendChild(tempDiv);
+
+      // Generate QR code
+      new QRCode(tempDiv, {
+        text: data,
+        width: 200,
+        height: 200,
+        colorDark: `rgb(${color[0]}, ${color[1]}, ${color[2]})`,
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      // Wait for QR generation and add to PDF
+      setTimeout(() => {
+        const canvas = tempDiv.querySelector('canvas');
+        if (canvas) {
+          const imgData = canvas.toDataURL('image/png');
+          pdf.addImage(imgData, 'PNG', x, y, size, size);
+        }
+        document.body.removeChild(tempDiv);
+        resolve();
+      }, 100);
+    });
+  }
+
+  function drawStippledLine(pdf, x1, y, width) {
+    pdf.setDrawColor(153, 153, 153); // Medium gray
+    pdf.setLineWidth(0.5);
+
+    const dashLength = 3.0;
+    const gapLength = 2.0;
+    const segmentLength = dashLength + gapLength;
+    const numSegments = Math.floor(width / segmentLength);
+
+    for (let i = 0; i < numSegments; i++) {
+      const startX = x1 + (i * segmentLength);
+      const endX = Math.min(startX + dashLength, x1 + width);
+      pdf.line(startX, y, endX, y);
+    }
+  }
+
+  function splitKeyString(key, charsPerLine) {
+    const lines = [];
+    for (let i = 0; i < key.length; i += charsPerLine) {
+      lines.push(key.substring(i, i + charsPerLine));
+    }
+    return lines;
+  }
+
   /* ── keygen ───────────────────────────────────────────────────────────── */
   window.doKeygen = function () {
     clearStatus('kg-status');
@@ -816,6 +1012,10 @@
         const btn = wrap.previousElementSibling.querySelector('button:last-child');
         if (btn) btn.textContent = 'Show QR';
       });
+      // Show PDF download button
+      document.getElementById('kg-pdf-btn').style.display = 'inline-block';
+      // Store keys globally for PDF generation
+      window._currentKeyPair = { publicKey: kp.publicKey, privateKey: kp.privateKey };
     } catch (e) {
       setStatus('kg-status', String(e), true);
     }

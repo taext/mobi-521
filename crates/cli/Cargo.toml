@@ -8,15 +8,21 @@ name = "mobi521"
 path = "src/main.rs"
 
 [features]
-default = ["qr-png"]
+default = ["qr-png", "pdf"]
 qr-png = ["qrcode/image", "image"]
+pdf = ["printpdf", "image"]
 
 [dependencies]
 mobi521-core = { path = "../core" }
 clap = { version = "4", features = ["derive"] }
 arboard = "3.4"
 qrcode = { version = "0.14", default-features = false }
+chrono = "0.4"
 
 [dependencies.image]
 version = "0.25"
+optional = true
+
+[dependencies.printpdf]
+version = "0.7"
 optional = true
