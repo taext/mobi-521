@@ -2,6 +2,16 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.4.5] - 2026-02-24
+
+### Added
+
+- **`export-pdf` command** - Generate printable key card PDFs from existing identity files
+  - `mobi521 export-pdf --identity identity.key` - Create PDF from existing key
+  - Accepts both file paths and raw key strings (like decrypt/sign commands)
+  - Supports `--single-card` and `--dual-keys` flags
+  - Default output: `keycard.pdf`
+
 ## [0.4.4] - 2026-02-22
 
 ### Added

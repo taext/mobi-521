@@ -117,6 +117,25 @@ enum Command {
         #[arg(value_name = "FILE")]
         input: Option<PathBuf>,
     },
+
+    /// Export a printable key card PDF from an existing identity
+    ExportPdf {
+        /// Identity file or raw private key string
+        #[arg(short = 'i', long, value_name = "IDENTITY")]
+        identity: String,
+
+        /// Output PDF file path
+        #[arg(short = 'o', long, value_name = "FILE", default_value = "keycard.pdf")]
+        output: PathBuf,
+
+        /// Generate only a single card instead of two
+        #[arg(long)]
+        single_card: bool,
+
+        /// Generate two cards with different keypairs (generates a second random keypair)
+        #[arg(long, conflicts_with = "single_card")]
+        dual_keys: bool,
+    },
 }
 
 fn main() {
@@ -249,6 +268,52 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                     eprintln!("Signature INVALID: {}", e);
                     process::exit(1);
                 }
+            }
+        }
+
+        Command::ExportPdf {
+            identity,
+            output,
+            single_card,
+            dual_keys,
+        } => {
+            use mobi521_core::keys::{decode_secret_key, encode_public_key, encode_secret_key, KeyPair};
+
+            // Resolve identity (file path or raw key string)
+            let sec_str = resolve_identity(&identity)?;
+
+            // Decode the secret key
+            let secret_key = decode_secret_key(&sec_str)?;
+
+            // Derive public key from secret key
+            let public_key = secret_key.public_key();
+
+            // Encode both keys as bech32 strings
+            let pub_str = encode_public_key(&public_key);
+            let sec_str_encoded = encode_secret_key(&secret_key);
+
+            // Generate PDF
+            if single_card {
+                pdf::generate_key_card_pdf_single(&pub_str, &sec_str_encoded, &output)?;
+            } else if dual_keys {
+                // Generate second keypair
+                let kp2 = KeyPair::generate();
+                let pub_str2 = encode_public_key(&kp2.public);
+                let sec_str2 = encode_secret_key(&kp2.secret);
+
+                // Print second keypair to stderr
+                eprintln!("\nSecond keypair generated:");
+                eprintln!("Public key:  {}", pub_str2);
+                eprintln!("Secret key:  {}", sec_str2);
+
+                pdf::generate_key_card_pdf_dual(
+                    &pub_str, &sec_str_encoded,
+                    &pub_str2, &sec_str2,
+                    &output
+                )?;
+            } else {
+                // Default: two identical cards
+                pdf::generate_key_card_pdf(&pub_str, &sec_str_encoded, &output)?;
             }
         }
     }
