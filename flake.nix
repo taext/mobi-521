@@ -12,7 +12,7 @@
         pkgs = import nixpkgs { inherit system overlays; };
         rust = pkgs.rust-bin.stable.latest.default.override {
           extensions = [ "rust-src" "rustfmt" "clippy" ];
-          targets = [ "wasm32-unknown-unknown" ];
+          targets = [ "wasm32-unknown-unknown" "x86_64-unknown-linux-musl" "x86_64-pc-windows-gnu" ];
         };
       in {
         devShells.default = pkgs.mkShell {
@@ -25,6 +25,8 @@
             pkgs.wl-clipboard  # Wayland clipboard tool
             pkgs.libxkbcommon  # Wayland support
             pkgs.wayland       # Wayland libraries
+            pkgs.musl          # Static linking for Linux deploy
+            pkgs.pkgsCross.mingwW64.stdenv.cc  # Windows cross-compile
           ];
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
