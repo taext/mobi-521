@@ -2,7 +2,7 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
-## [0.5.3] - 2026-02-25
+## [0.5.5] - 2026-02-25
 
 ### Added
 
@@ -10,7 +10,6 @@ All notable changes to mobi-521 will be documented in this file.
   - Linux x86_64 (musl, static, works on all distros including NixOS)
   - Linux ARM64 (Raspberry Pi, ARM servers)
   - Windows x86_64
-  - macOS Intel
   - macOS Apple Silicon (M1/M2/M3/M4)
 - **Nix flake cross-compile support** - `x86_64-unknown-linux-musl` target for portable Linux builds
 
