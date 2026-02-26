@@ -1,5 +1,6 @@
 use mobi521_core::keys::{encode_public_key, encode_secret_key, KeyPair};
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, Shell};
 use std::{
     fs,
     io::{self, Read, Write},
@@ -139,6 +140,13 @@ enum Command {
         /// Generate two cards with different keypairs (generates a second random keypair)
         #[arg(long, conflicts_with = "single_card")]
         dual_keys: bool,
+    },
+
+    /// Generate shell completion scripts
+    Completions {
+        /// Shell to generate completions for
+        #[arg(value_enum)]
+        shell: Shell,
     },
 }
 
@@ -328,6 +336,11 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 // Default: two identical cards
                 pdf::generate_key_card_pdf(&pub_str, &sec_str_encoded, &output)?;
             }
+        }
+
+        Command::Completions { shell } => {
+            let mut cmd = Cli::command();
+            generate(shell, &mut cmd, "mobi521", &mut io::stdout());
         }
     }
 
