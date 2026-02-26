@@ -8,6 +8,7 @@ resolver = "2"
 
 [workspace.package]
 version = "0.5.5"
+license = "MIT"
 
 [workspace.dependencies]
 # Elliptic curve / ECDH
