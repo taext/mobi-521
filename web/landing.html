@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mobi-521 — Modern P-521 Encryption</title>
+  <title>mobi-521 — Protect your thoughts and files</title>
   <style>
     /* ── tokens ──────────────────────────────────────────────────────────── */
     :root {
@@ -466,9 +466,9 @@
     <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
     <div class="version-badge">v0.5.5</div>
     <h1>mobi-521</h1>
-    <p class="tagline">Modern file encryption powered by P-521 elliptic curves</p>
+    <p class="tagline">Protect your thoughts and files</p>
     <p class="subtitle">
-      P-521 ECDH <span>•</span> HKDF-SHA512 <span>•</span> ChaCha20-Poly1305 <span>•</span> ECDSA signatures
+      Personal encryption that's also great for communication
     </p>
 
     <div class="cta-buttons">
@@ -478,6 +478,17 @@
       <a href="https://github.com/taext/mobi-521" class="btn btn-secondary" target="_blank" rel="noopener">
         GitHub
       </a>
+    </div>
+
+    <!-- Simple CLI examples -->
+    <div style="margin-top: 2.5rem; text-align: left; max-width: 420px; margin-left: auto; margin-right: auto;">
+      <pre style="background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 1.25rem; font-size: 0.9rem; line-height: 1.6;"><code style="color: var(--text);"><span style="color: var(--text-muted);"># one-step encryption (no password step)</span>
+mobi521 encrypt diary.txt      <span style="color: var(--text-muted);"># file</span>
+mobi521 encrypt -m "secret"    <span style="color: var(--text-muted);"># string</span>
+mobi521 encrypt                <span style="color: var(--text-muted);"># clipboard</span></code></pre>
+      <p style="color: var(--text); font-size: 1.1rem; margin-top: 1.25rem; text-align: center; font-weight: 500;">
+        Your public key is a <span style="color: var(--accent);">write-only mailbox</span> to yourself
+      </p>
     </div>
 
     <!-- Download stickers -->
@@ -510,10 +521,16 @@
   <div class="container">
     <div class="section-header">
       <h2>Why mobi-521?</h2>
-      <p>Security-first encryption with modern cryptography and zero-knowledge design</p>
+      <p>Self-encryption first. Communication when you need it.</p>
     </div>
 
     <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>Encrypt to Yourself</h3>
+        <p>Most encryption is to yourself: your files, backups, notes, photos, passwords. The "recipient" is future-you. No password prompts at encryption — just your public key.</p>
+      </div>
+
       <div class="feature-card">
         <span class="feature-icon">🔐</span>
         <h3>P-521 Elliptic Curves</h3>

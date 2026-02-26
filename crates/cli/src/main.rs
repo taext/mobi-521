@@ -67,6 +67,10 @@ enum Command {
         #[arg(long)]
         no_armor: bool,
 
+        /// Encrypt a string directly instead of reading from file/stdin
+        #[arg(short = 'm', long, value_name = "TEXT", conflicts_with = "input")]
+        message: Option<String>,
+
         /// Input file (default: stdin)
         #[arg(value_name = "FILE")]
         input: Option<PathBuf>,
@@ -206,15 +210,21 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             recipient,
             output,
             no_armor,
+            message,
             input,
         } => {
             let pubkey = match recipient {
                 Some(r) => r,
                 None => default_recipient()?,
             };
-            // Only use clipboard if no input file AND stdin is a TTY (not piped)
-            let use_clipboard = input.is_none() && std::io::IsTerminal::is_terminal(&std::io::stdin());
-            let plaintext = read_input(input)?;
+            // Determine plaintext source: --message flag, input file, or clipboard/stdin
+            let (plaintext, use_clipboard) = if let Some(msg) = message {
+                (msg.into_bytes(), false)
+            } else {
+                // Only use clipboard if no input file AND stdin is a TTY (not piped)
+                let use_clip = input.is_none() && std::io::IsTerminal::is_terminal(&std::io::stdin());
+                (read_input(input)?, use_clip)
+            };
             let ciphertext = mobi521_core::encrypt(&pubkey, &plaintext)?;
             if no_armor {
                 write_output(output, &ciphertext, use_clipboard)?;
