@@ -28,6 +28,12 @@
           ];
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
+
+            # Add local build to PATH so completions work in nix develop
+            if [ -d ./target/release ]; then
+              export PATH="$PWD/target/release:$PATH"
+            fi
+
             echo "mobi-521 dev shell"
             echo "  cargo build --release -p mobi521   -- CLI binary"
             echo "  wasm-pack build crates/wasm --target web --out-dir ../../web/pkg"
