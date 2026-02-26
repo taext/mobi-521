@@ -20,8 +20,12 @@ mod pdf;
     help_template = "{name} {version}\n{about}\n\n{usage-heading} {usage}\n\n{all-args}"
 )]
 struct Cli {
+    /// Print version
+    #[arg(short = 'v', long = "version", action = clap::ArgAction::Version)]
+    version: (),
+
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -159,7 +163,15 @@ fn main() {
 }
 
 fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
-    match cli.command {
+    let command = match cli.command {
+        Some(cmd) => cmd,
+        None => {
+            Cli::command().print_help()?;
+            return Ok(());
+        }
+    };
+
+    match command {
         Command::Keygen { output, qr, qr_png, card_pdf, single_card, dual_keys } => {
             let kp = KeyPair::generate();
             let pub_str = encode_public_key(&kp.public);
@@ -339,8 +351,13 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Command::Completions { shell } => {
-            let mut cmd = Cli::command();
-            generate(shell, &mut cmd, "mobi521", &mut io::stdout());
+            if shell == Shell::Fish {
+                // Use hand-written Fish completions (clap's generated ones don't work)
+                print!("{}", FISH_COMPLETIONS);
+            } else {
+                let mut cmd = Cli::command();
+                generate(shell, &mut cmd, "mobi521", &mut io::stdout());
+            }
         }
     }
 
@@ -562,3 +579,70 @@ fn write_to_clipboard_or_stdout(data: &[u8]) -> io::Result<()> {
         }
     }
 }
+
+/// Hand-written Fish completions (clap_complete's generated ones don't work with Fish 4.x)
+const FISH_COMPLETIONS: &str = r#"# mobi521 completions for Fish shell
+# Disable file completions by default
+complete -c mobi521 -f
+
+# Subcommands
+complete -c mobi521 -n "__fish_use_subcommand" -a keygen -d "Generate a new P-521 key pair"
+complete -c mobi521 -n "__fish_use_subcommand" -a encrypt -d "Encrypt a file or stdin"
+complete -c mobi521 -n "__fish_use_subcommand" -a decrypt -d "Decrypt a file or stdin"
+complete -c mobi521 -n "__fish_use_subcommand" -a sign -d "Sign a file or stdin"
+complete -c mobi521 -n "__fish_use_subcommand" -a verify -d "Verify a signature"
+complete -c mobi521 -n "__fish_use_subcommand" -a export-pdf -d "Export printable key card PDF"
+complete -c mobi521 -n "__fish_use_subcommand" -a completions -d "Generate shell completions"
+complete -c mobi521 -n "__fish_use_subcommand" -a help -d "Print help"
+complete -c mobi521 -n "__fish_use_subcommand" -s v -l version -d "Print version"
+complete -c mobi521 -n "__fish_use_subcommand" -s h -l help -d "Print help"
+
+# keygen options
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -s o -l output -rF -d "Write identity to file"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -l qr -d "Display QR codes in terminal"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -l qr-png -r -d "Save QR codes as PNG"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -l card-pdf -rF -d "Generate key card PDF"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -l single-card -d "Generate single card"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -l dual-keys -d "Generate two keypairs"
+complete -c mobi521 -n "__fish_seen_subcommand_from keygen" -s h -l help -d "Print help"
+
+# encrypt options
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -s r -l recipient -r -d "Recipient's public key"
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -s o -l output -rF -d "Write ciphertext to file"
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -l no-armor -d "Output raw binary"
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -s m -l message -r -d "Encrypt string directly"
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -s h -l help -d "Print help"
+complete -c mobi521 -n "__fish_seen_subcommand_from encrypt" -F -d "Input file"
+
+# decrypt options
+complete -c mobi521 -n "__fish_seen_subcommand_from decrypt" -s i -l identity -rF -d "Identity file or key"
+complete -c mobi521 -n "__fish_seen_subcommand_from decrypt" -s o -l output -rF -d "Write plaintext to file"
+complete -c mobi521 -n "__fish_seen_subcommand_from decrypt" -s h -l help -d "Print help"
+complete -c mobi521 -n "__fish_seen_subcommand_from decrypt" -F -d "Input file"
+
+# sign options
+complete -c mobi521 -n "__fish_seen_subcommand_from sign" -s i -l identity -rF -d "Identity file or key"
+complete -c mobi521 -n "__fish_seen_subcommand_from sign" -s o -l output -rF -d "Write signature to file"
+complete -c mobi521 -n "__fish_seen_subcommand_from sign" -s h -l help -d "Print help"
+complete -c mobi521 -n "__fish_seen_subcommand_from sign" -F -d "Input file"
+
+# verify options
+complete -c mobi521 -n "__fish_seen_subcommand_from verify" -s p -l pubkey -r -d "Signer's public key"
+complete -c mobi521 -n "__fish_seen_subcommand_from verify" -s s -l signature -r -d "Signature string or file"
+complete -c mobi521 -n "__fish_seen_subcommand_from verify" -s h -l help -d "Print help"
+complete -c mobi521 -n "__fish_seen_subcommand_from verify" -F -d "Input file"
+
+# export-pdf options
+complete -c mobi521 -n "__fish_seen_subcommand_from export-pdf" -s i -l identity -rF -d "Identity file or key"
+complete -c mobi521 -n "__fish_seen_subcommand_from export-pdf" -s o -l output -rF -d "Output PDF path"
+complete -c mobi521 -n "__fish_seen_subcommand_from export-pdf" -l single-card -d "Generate single card"
+complete -c mobi521 -n "__fish_seen_subcommand_from export-pdf" -l dual-keys -d "Generate two keypairs"
+complete -c mobi521 -n "__fish_seen_subcommand_from export-pdf" -s h -l help -d "Print help"
+
+# completions options
+complete -c mobi521 -n "__fish_seen_subcommand_from completions" -a "bash zsh fish elvish powershell" -d "Shell type"
+complete -c mobi521 -n "__fish_seen_subcommand_from completions" -s h -l help -d "Print help"
+
+# help subcommand
+complete -c mobi521 -n "__fish_seen_subcommand_from help" -a "keygen encrypt decrypt sign verify export-pdf completions" -d "Subcommand"
+"#;
