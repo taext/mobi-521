@@ -1,4 +1,4 @@
-# mobi-521 v0.5.5
+# mobi-521 v0.5.6
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 

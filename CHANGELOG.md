@@ -2,6 +2,26 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.5.6] - 2026-02-26
+
+### Added
+
+- **Shell completion support** - New `completions` subcommand generates tab completion scripts
+  - Supports Bash, Zsh, Fish, Elvish, and PowerShell
+  - `mobi521 completions fish > ~/.config/fish/completions/mobi521.fish`
+- **`--message` / `-m` flag for encrypt** - Encrypt strings directly without file/stdin
+  - `mobi521 encrypt -m "secret note"` - Encrypts the string directly
+  - Conflicts with file input (use one or the other)
+- **Piping support** - Automatic stdin/stdout detection for pipeline workflows
+- **Author attribution** - Version output now shows author contact
+
+### Changed
+
+- **Landing page reframing** - "Self-encryption first" philosophy
+  - New tagline: "Protect your thoughts and files"
+  - Emphasis on personal file protection over communication
+  - "Write-only mailbox to yourself" concept
+
 ## [0.5.5] - 2026-02-25
 
 ### Added
