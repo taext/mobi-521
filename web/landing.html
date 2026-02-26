@@ -479,6 +479,29 @@
         GitHub
       </a>
     </div>
+
+    <!-- Download stickers -->
+    <div style="margin-top: 2.5rem;">
+      <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;">Download CLI for your platform:</p>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 580px; margin: 0 auto;">
+        <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: all var(--transition);" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🐧</span>
+          <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">Linux x64</span>
+        </a>
+        <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: all var(--transition);" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🐧</span>
+          <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">Linux ARM</span>
+        </a>
+        <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: all var(--transition);" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🪟</span>
+          <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">Windows</span>
+        </a>
+        <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: all var(--transition);" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+          <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🍎</span>
+          <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">macOS</span>
+        </a>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -524,7 +547,7 @@
       <div class="feature-card">
         <span class="feature-icon">🎯</span>
         <h3>Zero Dependencies</h3>
-        <p>Single binary, no external dependencies. Optional Wayland clipboard support. Runs in Docker, Nix, or standalone. WebAssembly build for browser use.</p>
+        <p>Single binary, no external dependencies. Full clipboard support on Wayland, X11, macOS, and Windows. Runs in Docker, Nix, or standalone.</p>
       </div>
     </div>
 
@@ -736,13 +759,13 @@ python3 https_server.py
 <section>
   <div class="container narrow">
     <div class="section-header">
-      <h2>Get Started</h2>
-      <p>Install via Nix, Docker, or build from source</p>
+      <h2>Build from Source</h2>
+      <p>For developers who prefer to compile locally</p>
     </div>
 
     <div style="margin-top: 2rem;">
       <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: var(--text);">
-        With Nix <span class="badge">Recommended</span>
+        With Nix
       </h3>
       <pre><code>nix develop  # enter dev shell
 cargo build --release -p mobi521

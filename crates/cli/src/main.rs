@@ -212,7 +212,8 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 Some(r) => r,
                 None => default_recipient()?,
             };
-            let use_clipboard = input.is_none();
+            // Only use clipboard if no input file AND stdin is a TTY (not piped)
+            let use_clipboard = input.is_none() && std::io::IsTerminal::is_terminal(&std::io::stdin());
             let plaintext = read_input(input)?;
             let ciphertext = mobi521_core::encrypt(&pubkey, &plaintext)?;
             if no_armor {
@@ -230,7 +231,8 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         } => {
             // Accept either a path to a key file, or the raw key string
             let secret_key = resolve_identity(&identity)?;
-            let use_clipboard = input.is_none();
+            // Only use clipboard if no input file AND stdin is a TTY (not piped)
+            let use_clipboard = input.is_none() && std::io::IsTerminal::is_terminal(&std::io::stdin());
             let ciphertext = read_input(input)?;
             let plaintext = mobi521_core::decrypt(&secret_key, &ciphertext)?;
             write_output(output, &plaintext, use_clipboard)?;
@@ -242,7 +244,8 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             input,
         } => {
             let secret_key = resolve_identity(&identity)?;
-            let use_clipboard = input.is_none();
+            // Only use clipboard if no input file AND stdin is a TTY (not piped)
+            let use_clipboard = input.is_none() && std::io::IsTerminal::is_terminal(&std::io::stdin());
             let message = read_input(input)?;
             let sig = mobi521_core::sign(&secret_key, &message)?;
             let to_stdout = output.is_none() && !use_clipboard;
@@ -416,8 +419,14 @@ fn try_wl_paste() -> io::Result<Vec<u8>> {
 }
 
 /// Try to read from clipboard, fall back to stdin if clipboard unavailable.
+/// If stdin is not a TTY (i.e., data is being piped), read from stdin directly.
 fn read_from_clipboard_or_stdin() -> io::Result<Vec<u8>> {
-    // First try arboard (works on X11, macOS, Windows)
+    // If stdin is not a TTY, data is being piped — read from stdin directly
+    if !std::io::IsTerminal::is_terminal(&io::stdin()) {
+        return read_from_stdin();
+    }
+
+    // stdin is a TTY, try clipboard first
     match Clipboard::new() {
         Ok(mut clipboard) => {
             match clipboard.get_text() {

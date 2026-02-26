@@ -424,6 +424,7 @@
         <li><a href="#overview">Overview</a></li>
         <li><a href="#installation">Installation</a></li>
         <li><a href="#cli">Command-Line Interface</a></li>
+        <li><a href="#piping">Piping & Shell</a></li>
         <li><a href="#keygen">Key Generation</a></li>
         <li><a href="#qr-codes">QR Code Features</a></li>
         <li><a href="#encryption">Encryption</a></li>
@@ -464,7 +465,7 @@
         <li><strong>ChaCha20-Poly1305</strong> symmetric encryption in STREAM mode (64 KiB chunks)</li>
         <li><strong>ECDSA-P521-SHA512</strong> digital signatures with hedged nonces</li>
         <li><strong>Bech32m</strong> key encoding for error detection</li>
-        <li><strong>QR code</strong> generation for keys (ASCII terminal + PNG export)</li>
+        <li><strong>QR code</strong> generation for keys (ASCII terminal + PNG export + printable PDF key cards)</li>
         <li><strong>Clipboard integration</strong> on all major platforms</li>
         <li><strong>WebAssembly</strong> support for browser-based encryption</li>
       </ul>
@@ -474,7 +475,49 @@
     <section id="installation">
       <h2>Installation</h2>
 
-      <h3>With Nix (Recommended)</h3>
+      <h3>Pre-built Binaries (Easiest)</h3>
+      <p>Download ready-to-use executables from the <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener">GitHub Releases</a> page:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Download</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Linux x86_64</td>
+            <td><code>mobi521-linux-x86_64.tar.gz</code></td>
+            <td>Static binary (musl), works on all distros incl. NixOS</td>
+          </tr>
+          <tr>
+            <td>Linux ARM64</td>
+            <td><code>mobi521-linux-arm64.tar.gz</code></td>
+            <td>Raspberry Pi, ARM servers</td>
+          </tr>
+          <tr>
+            <td>Windows x86_64</td>
+            <td><code>mobi521-windows-x86_64.zip</code></td>
+            <td>Windows 10/11</td>
+          </tr>
+          <tr>
+            <td>macOS Apple Silicon</td>
+            <td><code>mobi521-macos-arm64.tar.gz</code></td>
+            <td>M1/M2/M3/M4 Macs</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><code># Linux/macOS: Extract and run
+tar -xzf mobi521-linux-x86_64.tar.gz
+./mobi521 --help
+
+# Optional: Move to PATH
+sudo mv mobi521 /usr/local/bin/</code></pre>
+
+      <h3>With Nix</h3>
       <p>The Nix development shell includes all required dependencies, including <code>wl-clipboard</code> for Wayland clipboard support.</p>
       <pre><code>nix develop        # enter dev shell
 cargo build --release -p mobi521
@@ -512,7 +555,7 @@ cargo build --release -p mobi521 --no-default-features</code></pre>
     <!-- ── CLI ──────────────────────────────────────────────────────────── -->
     <section id="cli">
       <h2>Command-Line Interface</h2>
-      <p>The mobi-521 CLI provides five main commands:</p>
+      <p>The mobi-521 CLI provides six main commands:</p>
 
       <table>
         <thead>
@@ -542,6 +585,10 @@ cargo build --release -p mobi521 --no-default-features</code></pre>
             <td><code>verify</code></td>
             <td>Verify a digital signature</td>
           </tr>
+          <tr>
+            <td><code>export-pdf</code></td>
+            <td>Generate key card PDF from existing identity</td>
+          </tr>
         </tbody>
       </table>
 
@@ -551,12 +598,80 @@ mobi521 --version    # Show version</code></pre>
 
       <h3>Subcommand Help</h3>
       <p>Each subcommand has its own detailed help text with all available options:</p>
-      <pre><code>mobi521 keygen -h    # Key generation options
-mobi521 encrypt -h   # Encryption options
-mobi521 decrypt -h   # Decryption options
-mobi521 sign -h      # Signing options
-mobi521 verify -h    # Verification options</code></pre>
+      <pre><code>mobi521 keygen -h      # Key generation options
+mobi521 encrypt -h     # Encryption options
+mobi521 decrypt -h     # Decryption options
+mobi521 sign -h        # Signing options
+mobi521 verify -h      # Verification options
+mobi521 export-pdf -h  # PDF export options</code></pre>
       <p>Use <code>-h</code> or <code>--help</code> after any subcommand to see all flags, arguments, and usage examples for that specific command.</p>
+
+      <h3 id="piping">Piping & Shell Integration</h3>
+      <p>mobi-521 fully supports Unix pipes. When data is piped in, it automatically reads from stdin and writes to stdout (bypassing clipboard):</p>
+
+      <h4>Basic Piping</h4>
+      <pre><code># Encrypt piped data
+echo "secret message" | mobi521 encrypt -r mobi521...
+
+# Full encrypt → decrypt pipeline
+echo "hello" | mobi521 encrypt -r mobi521... | mobi521 decrypt -i key.txt</code></pre>
+
+      <h4>Practical Examples</h4>
+      <pre><code># Encrypt environment variables
+echo "DATABASE_URL=postgres://..." | mobi521 encrypt -r mobi521... > db.m521
+
+# Encrypt a git diff
+git diff | mobi521 encrypt -r mobi521... > patch.m521
+
+# Decrypt and apply patch
+mobi521 decrypt -i key.txt patch.m521 | git apply
+
+# Encrypt command output
+ls -la /secret | mobi521 encrypt -r mobi521... > listing.m521
+
+# Encrypt tarball on-the-fly
+tar czf - ./secret-folder | mobi521 encrypt -r mobi521... > backup.m521
+
+# Decrypt and extract
+mobi521 decrypt -i key.txt backup.m521 | tar xzf -</code></pre>
+
+      <h4>Pipe Behavior</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Input</th>
+            <th>Output</th>
+            <th>Behavior</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Piped (stdin)</td>
+            <td>No <code>-o</code></td>
+            <td>stdin → stdout</td>
+          </tr>
+          <tr>
+            <td>Piped (stdin)</td>
+            <td><code>-o FILE</code></td>
+            <td>stdin → File</td>
+          </tr>
+          <tr>
+            <td>Interactive (TTY)</td>
+            <td>No <code>-o</code></td>
+            <td>Clipboard → Clipboard</td>
+          </tr>
+          <tr>
+            <td>File specified</td>
+            <td>No <code>-o</code></td>
+            <td>File → stdout</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-info">
+        <strong>Automatic Detection</strong>
+        <p>mobi-521 automatically detects whether stdin is a pipe or an interactive terminal. No flags needed — just pipe data in and it works.</p>
+      </div>
     </section>
 
     <!-- ── KEY GENERATION ───────────────────────────────────────────────── -->
@@ -667,6 +782,31 @@ mobi521 keygen --card-pdf keycard.pdf --dual-keys</code></pre>
         <li><strong>Emergency recovery</strong>: Restore keys after hardware failure or device loss</li>
         <li><strong>Unique to mobi-521</strong>: No other encryption tool (age/rage/GPG) offers printable key cards</li>
       </ul>
+
+      <h3>Export PDF from Existing Keys</h3>
+      <p>Generate key card PDFs from existing identity files using the <code>export-pdf</code> command:</p>
+      <pre><code># From identity file
+mobi521 export-pdf --identity identity.txt
+
+# From raw key string
+mobi521 export-pdf --identity "MOBI521-SECRET-KEY-..."
+
+# Custom output filename
+mobi521 export-pdf --identity identity.txt -o backup-card.pdf
+
+# Single card (no duplicate)
+mobi521 export-pdf --identity identity.txt --single-card</code></pre>
+
+      <p>The <code>export-pdf</code> command accepts the same identity formats as <code>decrypt</code> and <code>sign</code>:</p>
+      <ul>
+        <li>Path to an identity file containing the private key</li>
+        <li>Raw private key string starting with <code>MOBI521-SECRET-KEY-</code></li>
+      </ul>
+
+      <div class="callout callout-info">
+        <strong>When to use export-pdf</strong>
+        <p>Use <code>export-pdf</code> when you already have a key pair and want to create a physical backup. Use <code>keygen --card-pdf</code> when generating a new key pair.</p>
+      </div>
 
       <h3>Key Format</h3>
       <ul>
