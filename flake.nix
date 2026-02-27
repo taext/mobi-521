@@ -1,4 +1,6 @@
 {
+  description = "mobi-521: P-521 ECC encryption tool";
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -9,7 +11,42 @@
       let
         pkgs = import nixpkgs { inherit system; };
       in {
+        packages.default = pkgs.rustPlatform.buildRustPackage {
+          pname = "mobi521";
+          version = "0.5.6";
+
+          src = ./.;
+
+          cargoLock = {
+            lockFile = ./Cargo.lock;
+          };
+
+          cargoBuildFlags = [ "-p" "mobi521" ];
+
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
+
+          buildInputs = with pkgs; [
+            libx11
+            libxcursor
+            libxrandr
+            libxi
+          ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+            wayland
+            libxkbcommon
+          ];
+
+          meta = with pkgs.lib; {
+            description = "P-521 elliptic curve encryption tool";
+            homepage = "https://m521.app";
+            license = licenses.mit;
+            mainProgram = "mobi521";
+          };
+        };
+
         devShells.default = pkgs.mkShell {
+          inputsFrom = [ self.packages.${system}.default ];
           nativeBuildInputs = [
             pkgs.pkg-config
           ];
@@ -19,6 +56,7 @@
             pkgs.rustfmt
             pkgs.clippy
             pkgs.wasm-pack
+            pkgs.lld
             pkgs.gcc
             pkgs.openssl
             pkgs.python3
@@ -29,15 +67,13 @@
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
 
-            # Add local build to PATH so completions work in nix develop
             if [ -d ./target/release ]; then
               export PATH="$PWD/target/release:$PATH"
             fi
 
             echo "mobi-521 dev shell"
-            echo "  cargo build --release -p mobi521   -- CLI binary"
+            echo "  cargo build --release -p mobi521"
             echo "  wasm-pack build crates/wasm --target web --out-dir ../../web/pkg"
-            echo "  scp -r web/* root@159.89.109.4:/root/mobi521-web/"
           '';
         };
       });
