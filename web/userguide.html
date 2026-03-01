@@ -517,11 +517,20 @@ tar -xzf mobi521-linux-x86_64.tar.gz
 # Optional: Move to PATH
 sudo mv mobi521 /usr/local/bin/</code></pre>
 
-      <h3>With Nix</h3>
-      <p>The Nix development shell includes all required dependencies, including <code>wl-clipboard</code> for Wayland clipboard support.</p>
-      <pre><code>nix develop        # enter dev shell
-cargo build --release -p mobi521
-./target/release/mobi521 --help</code></pre>
+      <h3>With Nix (Easiest for Nix users)</h3>
+      <p>Run directly without cloning or building:</p>
+      <pre><code># Try it instantly
+nix shell github:taext/mobi-521
+mobi521 --help
+
+# Or run a single command
+nix run github:taext/mobi-521 -- keygen</code></pre>
+
+      <p style="margin-top: 1rem;">For development, the Nix dev shell includes all dependencies including <code>wl-clipboard</code> for Wayland:</p>
+      <pre><code>git clone https://github.com/taext/mobi-521.git
+cd mobi-521
+nix develop
+cargo build --release -p mobi521</code></pre>
 
       <h3>With Docker (CLI)</h3>
       <pre><code>docker build -t mobi521 .
