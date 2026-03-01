@@ -494,7 +494,7 @@ mobi521 encrypt                <span style="color: var(--text-muted);"># clipboa
     <!-- Download stickers -->
     <div style="margin-top: 2.5rem;">
       <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem;">Download CLI for your platform:</p>
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 580px; margin: 0 auto;">
+      <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; max-width: 700px; margin: 0 auto;">
         <a href="https://github.com/taext/mobi-521/releases/latest" target="_blank" rel="noopener" style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); text-decoration: none; transition: all var(--transition);" onmouseover="this.style.borderColor='var(--accent)'; this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow)'" onmouseout="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
           <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🐧</span>
           <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">Linux x64</span>
@@ -511,7 +511,14 @@ mobi521 encrypt                <span style="color: var(--text-muted);"># clipboa
           <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">🍎</span>
           <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">macOS</span>
         </a>
+        <div style="display: flex; flex-direction: column; align-items: center; padding: 1rem 0.75rem; background: var(--surface); border: 2px solid var(--accent); border-radius: var(--radius);">
+          <span style="font-size: 1.75rem; margin-bottom: 0.4rem;">❄️</span>
+          <span style="font-weight: 600; color: var(--text); font-size: 0.8rem;">Nix</span>
+        </div>
       </div>
+      <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.85rem; font-family: var(--font-mono);">
+        nix shell github:taext/mobi-521
+      </p>
     </div>
   </div>
 </section>
@@ -675,18 +682,17 @@ mobi521 keygen --card-pdf mykey
           <li>Default recipient configuration</li>
           <li>Batch operations and scripting</li>
         </ul>
-        <pre><code># Generate keys with QR codes
+        <pre><code># Install with Nix (no clone needed)
+nix shell github:taext/mobi-521
+
+# Generate keys with QR codes
 mobi521 keygen --qr --qr-png mykey
 
 # Encrypt from clipboard
 mobi521 encrypt -r mobi521...
 
 # Decrypt to file
-mobi521 decrypt -i key.txt msg.m521 -o plain.txt
-
-# Sign and verify
-mobi521 sign -i key.txt doc.pdf -o doc.sig
-mobi521 verify -p mobi521... -s doc.sig doc.pdf</code></pre>
+mobi521 decrypt -i key.txt msg.m521 -o plain.txt</code></pre>
       </div>
 
       <div class="usage-card">
