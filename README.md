@@ -24,7 +24,13 @@ The STREAM chunked construction means truncated ciphertexts always fail authenti
 
 ### Installation
 
-**Nix (recommended):**
+**Nix (easiest):**
+```bash
+nix shell github:taext/mobi-521
+mobi521 --help
+```
+
+**Nix (development):**
 ```bash
 nix develop
 cargo build --release -p mobi521
