@@ -10,3 +10,4 @@ test-*.pdf
 mobi521-keycard-2026-02-22.pdf
 CLAUDE.md
 build_webapp_and_copy_to_droplet
+web/sw.js
