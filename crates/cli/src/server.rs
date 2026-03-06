@@ -189,3 +189,229 @@ pub async fn run_server(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn test_health() {
+        let app = create_router();
+        let response = app
+            .oneshot(Request::builder().uri("/api/health").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+    }
+
+    #[tokio::test]
+    async fn test_keygen() {
+        let app = create_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/keygen")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{}"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert!(json["publicKey"].as_str().unwrap().starts_with("mobi521"));
+        assert!(json["privateKey"].as_str().unwrap().starts_with("MOBI521-SECRET-KEY"));
+    }
+
+    #[tokio::test]
+    async fn test_encrypt_decrypt_roundtrip() {
+        let app = create_router();
+
+        // Generate keypair
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/keygen")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{}"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let keys: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let pub_key = keys["publicKey"].as_str().unwrap();
+        let priv_key = keys["privateKey"].as_str().unwrap();
+
+        // Encrypt
+        let plaintext = "Hello, mobi-521 API!";
+        let encrypt_req = serde_json::json!({
+            "recipient": pub_key,
+            "plaintext": plaintext
+        });
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/encrypt")
+                    .header("content-type", "application/json")
+                    .body(Body::from(encrypt_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let enc: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let ciphertext = enc["ciphertext"].as_str().unwrap();
+        assert!(ciphertext.contains("-----BEGIN MOBI-521 ENCRYPTED FILE-----"));
+
+        // Decrypt
+        let decrypt_req = serde_json::json!({
+            "privateKey": priv_key,
+            "ciphertext": ciphertext
+        });
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/decrypt")
+                    .header("content-type", "application/json")
+                    .body(Body::from(decrypt_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let dec: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(dec["plaintext"], plaintext);
+    }
+
+    #[tokio::test]
+    async fn test_sign_verify_roundtrip() {
+        let app = create_router();
+
+        // Generate keypair
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/keygen")
+                    .header("content-type", "application/json")
+                    .body(Body::from("{}"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let keys: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let pub_key = keys["publicKey"].as_str().unwrap();
+        let priv_key = keys["privateKey"].as_str().unwrap();
+
+        // Sign
+        let message = "Sign this message";
+        let sign_req = serde_json::json!({
+            "privateKey": priv_key,
+            "message": message
+        });
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/sign")
+                    .header("content-type", "application/json")
+                    .body(Body::from(sign_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let sig: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let signature = sig["signature"].as_str().unwrap();
+
+        // Verify (valid)
+        let verify_req = serde_json::json!({
+            "publicKey": pub_key,
+            "message": message,
+            "signature": signature
+        });
+        let response = app
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/verify")
+                    .header("content-type", "application/json")
+                    .body(Body::from(verify_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let result: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(result["valid"], true);
+
+        // Verify (tampered message)
+        let verify_req = serde_json::json!({
+            "publicKey": pub_key,
+            "message": "TAMPERED message",
+            "signature": signature
+        });
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/verify")
+                    .header("content-type", "application/json")
+                    .body(Body::from(verify_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let result: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(result["valid"], false);
+    }
+
+    #[tokio::test]
+    async fn test_encrypt_invalid_key() {
+        let app = create_router();
+        let encrypt_req = serde_json::json!({
+            "recipient": "invalid-key",
+            "plaintext": "test"
+        });
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/api/encrypt")
+                    .header("content-type", "application/json")
+                    .body(Body::from(encrypt_req.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+}

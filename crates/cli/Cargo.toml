@@ -34,3 +34,6 @@ optional = true
 [dependencies.printpdf]
 version = "0.7"
 optional = true
+
+[dev-dependencies]
+tower = "0.5"
