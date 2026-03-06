@@ -429,7 +429,7 @@
   <header>
     <img src="mobi-521-logo-1.png" alt="mobi-521" class="logo-img">
     <p class="tagline">
-      v0.5.6 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
+      v0.5.7 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
     </p>
     <p style="text-align: center; margin-top: 0.75rem;">
       <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-size: 0.82rem; transition: color var(--transition);">
@@ -664,9 +664,96 @@
     };
     window._wasmReady = true;
     window.doKeygen();
+
+    // Register Service Worker for fetch-style API
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.register('./sw.js');
+        console.log('[mobi-521] Service Worker registered');
+
+        // Wait for SW to be ready
+        await navigator.serviceWorker.ready;
+
+        // Setup MessageChannel for WASM communication
+        const channel = new MessageChannel();
+        channel.port1.onmessage = handleApiRequest;
+
+        // Send port to Service Worker
+        navigator.serviceWorker.controller?.postMessage(
+          { type: 'INIT_PORT' },
+          [channel.port2]
+        );
+        console.log('[mobi-521] API ready at /api/*');
+      } catch (swErr) {
+        console.warn('[mobi-521] Service Worker registration failed:', swErr);
+      }
+    }
   } catch (e) {
     wasmError('Could not load WASM: ' + (e.message || e) +
               ' — run: wasm-pack build crates/wasm --target web --out-dir ../../web/pkg');
+  }
+
+  // Handle API requests from Service Worker
+  function handleApiRequest(event) {
+    const { id, endpoint, body } = event.data;
+
+    let result;
+    let error = null;
+
+    try {
+      switch (endpoint) {
+        case 'keygen': {
+          const kp = window._wasm.keygen();
+          result = { publicKey: kp.publicKey, privateKey: kp.privateKey };
+          break;
+        }
+        case 'encrypt': {
+          const { plaintext, recipient } = body;
+          if (!recipient) throw new Error('Missing "recipient" (public key)');
+          if (!plaintext) throw new Error('Missing "plaintext"');
+          const bytes = new TextEncoder().encode(plaintext);
+          const ciphertext = window._wasm.encrypt(recipient, bytes);
+          result = { ciphertext };
+          break;
+        }
+        case 'decrypt': {
+          const { ciphertext, privateKey } = body;
+          if (!privateKey) throw new Error('Missing "privateKey"');
+          if (!ciphertext) throw new Error('Missing "ciphertext"');
+          const ctBytes = new TextEncoder().encode(ciphertext);
+          const ptBytes = window._wasm.decrypt(privateKey, ctBytes);
+          const plaintext = new TextDecoder().decode(ptBytes);
+          result = { plaintext };
+          break;
+        }
+        case 'sign': {
+          const { message, privateKey } = body;
+          if (!privateKey) throw new Error('Missing "privateKey"');
+          if (!message) throw new Error('Missing "message"');
+          const bytes = new TextEncoder().encode(message);
+          const signature = window._wasm.sign(privateKey, bytes);
+          result = { signature };
+          break;
+        }
+        case 'verify': {
+          const { message, publicKey, signature } = body;
+          if (!publicKey) throw new Error('Missing "publicKey"');
+          if (!message) throw new Error('Missing "message"');
+          if (!signature) throw new Error('Missing "signature"');
+          const bytes = new TextEncoder().encode(message);
+          const valid = window._wasm.verify(publicKey, bytes, signature);
+          result = { valid };
+          break;
+        }
+        default:
+          throw new Error(`Unknown endpoint: ${endpoint}`);
+      }
+    } catch (e) {
+      error = e.message || String(e);
+    }
+
+    // Send response back to Service Worker
+    event.target.postMessage({ id, result, error });
   }
 </script>
 

@@ -2,6 +2,17 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.5.7] - 2026-03-06
+
+### Added
+
+- **HTTP/HTTPS API server** - New `serve` subcommand starts a local REST API
+  - `mobi521 serve --port 8080` - Start HTTP server
+  - `mobi521 serve --port 8443 --cert cert.pem --key key.pem` - Start HTTPS server
+  - Endpoints: `/api/health`, `/api/keygen`, `/api/encrypt`, `/api/decrypt`, `/api/sign`, `/api/verify`
+  - JSON request/response format
+  - Built with axum and rustls
+
 ## [0.5.6] - 2026-02-26
 
 ### Added

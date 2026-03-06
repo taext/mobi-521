@@ -11,12 +11,13 @@ use arboard::Clipboard;
 
 mod qr;
 mod pdf;
+mod server;
 
 #[derive(Parser)]
 #[command(
     name = "mobi521",
     about = "P-521 ECC encryption (ECDH + ChaCha20-Poly1305)",
-    version = concat!(env!("CARGO_PKG_VERSION"), "\n-------------\nby david.2100 @ signal 2026-02-26"),
+    version = concat!(env!("CARGO_PKG_VERSION"), "\n-------------\nby david.2100 @ signal 2026-03-06"),
     help_template = "{name} {version}\n{about}\n\n{usage-heading} {usage}\n\n{all-args}"
 )]
 struct Cli {
@@ -144,6 +145,25 @@ enum Command {
         /// Generate two cards with different keypairs (generates a second random keypair)
         #[arg(long, conflicts_with = "single_card")]
         dual_keys: bool,
+    },
+
+    /// Start an HTTP API server
+    Serve {
+        /// Port to listen on
+        #[arg(short, long, default_value = "8080")]
+        port: u16,
+
+        /// Address to bind to
+        #[arg(long, default_value = "127.0.0.1")]
+        bind: String,
+
+        /// TLS certificate file (PEM format) - enables HTTPS
+        #[arg(long, value_name = "FILE", requires = "key")]
+        cert: Option<PathBuf>,
+
+        /// TLS private key file (PEM format)
+        #[arg(long, value_name = "FILE", requires = "cert")]
+        key: Option<PathBuf>,
     },
 
     /// Generate shell completion scripts
@@ -348,6 +368,15 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 // Default: two identical cards
                 pdf::generate_key_card_pdf(&pub_str, &sec_str_encoded, &output)?;
             }
+        }
+
+        Command::Serve { port, bind, cert, key } => {
+            let tls = match (cert, key) {
+                (Some(c), Some(k)) => Some((c, k)),
+                _ => None,
+            };
+            tokio::runtime::Runtime::new()?
+                .block_on(server::run_server(&bind, port, tls))?;
         }
 
         Command::Completions { shell } => {

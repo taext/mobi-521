@@ -1,4 +1,4 @@
-# mobi-521 v0.5.6
+# mobi-521 v0.5.7
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 
@@ -89,6 +89,37 @@ mobi521 verify -p mobi521... -s document.sig document.txt
 - Stdin/stdout piping support
 
 **📚 See the [User Guide](web/userguide.html) for detailed documentation on all features.**
+
+### API Server
+
+Start a local HTTP/HTTPS API server:
+
+```bash
+# HTTP
+mobi521 serve --port 8080
+
+# HTTPS (with TLS)
+mobi521 serve --port 8443 --cert cert.pem --key key.pem
+```
+
+**Endpoints:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
+| POST | `/api/keygen` | Generate keypair |
+| POST | `/api/encrypt` | Encrypt plaintext |
+| POST | `/api/decrypt` | Decrypt ciphertext |
+| POST | `/api/sign` | Sign message |
+| POST | `/api/verify` | Verify signature |
+
+**Example:**
+```bash
+curl -X POST http://localhost:8080/api/keygen
+curl -X POST http://localhost:8080/api/encrypt \
+  -H "Content-Type: application/json" \
+  -d '{"recipient":"mobi521...", "plaintext":"Hello"}'
+```
 
 ## File format
 

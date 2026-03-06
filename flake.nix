@@ -13,7 +13,7 @@
       in {
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = "mobi521";
-          version = "0.5.6";
+          version = "0.5.7";
 
           src = ./.;
 
