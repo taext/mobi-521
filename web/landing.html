@@ -277,6 +277,25 @@
       }
     }
 
+    /* ── three-column layout ──────────────────────────────────────────────── */
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+      justify-content: center;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (max-width: 1024px) {
+      .three-col {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+      }
+    }
+
     .usage-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -665,10 +684,10 @@ mobi521 keygen --card-pdf mykey
   <div class="container">
     <div class="section-header">
       <h2>Choose Your Interface</h2>
-      <p>Powerful command-line tool or user-friendly browser UI</p>
+      <p>Command-line, browser UI, or REST API</p>
     </div>
 
-    <div class="two-col">
+    <div class="three-col">
       <div class="usage-card">
         <h3><span class="icon">⌨️</span> CLI</h3>
         <p style="color: var(--text-muted); margin-bottom: 1rem;">
@@ -720,6 +739,31 @@ python3 https_server.py
         <div style="margin-top: 1.5rem; text-align: center;">
           <a href="https://159.89.109.4/" class="btn btn-primary" target="_blank" rel="noopener">Launch Web App →</a>
         </div>
+      </div>
+
+      <div class="usage-card">
+        <h3><span class="icon">🔌</span> REST API</h3>
+        <p style="color: var(--text-muted); margin-bottom: 1rem;">
+          Integrate encryption into your own applications. Ideal for Tailscale networks.
+        </p>
+        <ul>
+          <li>Local HTTP/HTTPS server</li>
+          <li>JSON request/response format</li>
+          <li>TLS support with custom certificates</li>
+          <li>All CLI features via HTTP endpoints</li>
+          <li>Easy integration with any language</li>
+          <li>Built with axum and rustls</li>
+        </ul>
+        <pre><code># Start API server
+mobi521 serve --port 8080
+
+# Generate keypair
+curl -X POST localhost:8080/api/keygen
+
+# Encrypt data
+curl -X POST localhost:8080/api/encrypt \
+  -H "Content-Type: application/json" \
+  -d '{"recipient":"mobi521...", "data":"secret"}'</code></pre>
       </div>
     </div>
   </div>
