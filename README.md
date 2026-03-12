@@ -1,4 +1,4 @@
-# mobi-521 v0.5.7
+# mobi-521 v0.5.8
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 
@@ -46,7 +46,10 @@ docker run --rm mobi521 --help
 ```bash
 cargo build --release -p mobi521
 
-# Or without QR PNG support (smaller binary):
+# Without API server (8.8 MB instead of 15 MB):
+cargo build --release -p mobi521 --no-default-features --features "qr-png,pdf"
+
+# Minimal build (no server, no QR PNG, no PDF):
 cargo build --release -p mobi521 --no-default-features
 ```
 

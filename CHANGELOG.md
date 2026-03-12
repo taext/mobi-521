@@ -2,6 +2,16 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.5.8] - 2026-03-12
+
+### Changed
+
+- **Optional HTTP server** - API server is now a compile-time option
+  - Default build includes server (15 MB)
+  - Build without server: `--no-default-features --features "qr-png,pdf"` (8.8 MB)
+  - 41% smaller binary when server is not needed
+  - `serve` subcommand only available when `server` feature is enabled
+
 ## [0.5.7] - 2026-03-06
 
 ### Added

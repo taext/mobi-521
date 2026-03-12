@@ -11,6 +11,7 @@ use arboard::Clipboard;
 
 mod qr;
 mod pdf;
+#[cfg(feature = "server")]
 mod server;
 
 #[derive(Parser)]
@@ -148,6 +149,7 @@ enum Command {
     },
 
     /// Start an HTTP API server
+    #[cfg(feature = "server")]
     Serve {
         /// Port to listen on
         #[arg(short, long, default_value = "8080")]
@@ -370,6 +372,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        #[cfg(feature = "server")]
         Command::Serve { port, bind, cert, key } => {
             let tls = match (cert, key) {
                 (Some(c), Some(k)) => Some((c, k)),
