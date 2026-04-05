@@ -124,6 +124,47 @@ curl -X POST http://localhost:8080/api/encrypt \
   -d '{"recipient":"mobi521...", "plaintext":"Hello"}'
 ```
 
+### WASM API
+
+Use mobi-521 in the browser via WebAssembly. Build with:
+
+```bash
+wasm-pack build crates/wasm --target web --out-dir ../../web/pkg
+```
+
+**Functions:**
+
+| Function | Parameters | Returns |
+|----------|------------|---------|
+| `keygen()` | — | `{ publicKey, privateKey }` |
+| `encrypt(pubkey, data)` | bech32 pubkey, `Uint8Array` | ASCII-armored string |
+| `decrypt(privkey, data)` | bech32 privkey, `Uint8Array` | `Uint8Array` |
+| `sign(privkey, message)` | bech32 privkey, `Uint8Array` | base64 signature |
+| `verify(pubkey, message, sig)` | bech32 pubkey, `Uint8Array`, base64 | `true` or throws |
+
+**Example:**
+```javascript
+import init, { keygen, encrypt, decrypt, sign, verify } from './pkg/mobi521_wasm.js';
+
+await init();
+
+// Generate keypair
+const { publicKey, privateKey } = keygen();
+
+// Encrypt
+const plaintext = new TextEncoder().encode("Hello, world!");
+const ciphertext = encrypt(publicKey, plaintext);
+
+// Decrypt
+const decrypted = decrypt(privateKey, new TextEncoder().encode(ciphertext));
+console.log(new TextDecoder().decode(decrypted));
+
+// Sign & verify
+const message = new TextEncoder().encode("Sign this");
+const signature = sign(privateKey, message);
+verify(publicKey, message, signature); // true or throws
+```
+
 ## File format
 
 ```
