@@ -2,6 +2,15 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.6.0] - 2026-04-09
+
+### Changed
+
+- **Identity file extension** - Standardized to `.m521` across all documentation and webapp
+  - Web app now downloads identity files as `identity.m521` (was `identity.m521key`)
+  - Documentation examples updated: `identity.txt`, `identity.key`, `key.txt` → `identity.m521`, `key.m521`
+  - Consistent with encrypted file extension (`.m521`)
+
 ## [0.5.8] - 2026-03-12
 
 ### Changed
@@ -59,7 +68,7 @@ All notable changes to mobi-521 will be documented in this file.
 ### Added
 
 - **`export-pdf` command** - Generate printable key card PDFs from existing identity files
-  - `mobi521 export-pdf --identity identity.key` - Create PDF from existing key
+  - `mobi521 export-pdf --identity identity.m521` - Create PDF from existing key
   - Accepts both file paths and raw key strings (like decrypt/sign commands)
   - Supports `--single-card` and `--dual-keys` flags
   - Default output: `keycard.pdf`

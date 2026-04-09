@@ -1,4 +1,4 @@
-# mobi-521 v0.5.8
+# mobi-521 v0.6.0
 
 <img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
 
@@ -64,7 +64,7 @@ docker run --rm -p 8080:80 -p 8443:443 mobi521-web
 ```bash
 # Generate a key pair
 mobi521 keygen
-mobi521 keygen -o identity.txt        # save to file
+mobi521 keygen -o identity.m521       # save to file
 mobi521 keygen --qr                   # with QR codes (ASCII)
 mobi521 keygen --qr --qr-png mykey    # with PNG QR codes
 mobi521 keygen --card-pdf card.pdf    # printable key card (A4, 2 cards)
@@ -75,10 +75,10 @@ mobi521 keygen --card-pdf card.pdf --dual-keys     # 2 different keypairs
 mobi521 encrypt -r mobi521... plaintext.txt -o encrypted.m521
 
 # Decrypt a file
-mobi521 decrypt -i identity.txt encrypted.m521 -o plaintext.txt
+mobi521 decrypt -i identity.m521 encrypted.m521 -o plaintext.txt
 
 # Sign a file
-mobi521 sign -i identity.txt document.txt -o document.sig
+mobi521 sign -i identity.m521 document.txt -o document.sig
 
 # Verify a signature
 mobi521 verify -p mobi521... -s document.sig document.txt

@@ -623,7 +623,7 @@ mobi521 export-pdf -h  # PDF export options</code></pre>
 echo "secret message" | mobi521 encrypt -r mobi521...
 
 # Full encrypt → decrypt pipeline
-echo "hello" | mobi521 encrypt -r mobi521... | mobi521 decrypt -i key.txt</code></pre>
+echo "hello" | mobi521 encrypt -r mobi521... | mobi521 decrypt -i key.m521</code></pre>
 
       <h4>Practical Examples</h4>
       <pre><code># Encrypt environment variables
@@ -633,7 +633,7 @@ echo "DATABASE_URL=postgres://..." | mobi521 encrypt -r mobi521... > db.m521
 git diff | mobi521 encrypt -r mobi521... > patch.m521
 
 # Decrypt and apply patch
-mobi521 decrypt -i key.txt patch.m521 | git apply
+mobi521 decrypt -i key.m521 patch.m521 | git apply
 
 # Encrypt command output
 ls -la /secret | mobi521 encrypt -r mobi521... > listing.m521
@@ -642,7 +642,7 @@ ls -la /secret | mobi521 encrypt -r mobi521... > listing.m521
 tar czf - ./secret-folder | mobi521 encrypt -r mobi521... > backup.m521
 
 # Decrypt and extract
-mobi521 decrypt -i key.txt backup.m521 | tar xzf -</code></pre>
+mobi521 decrypt -i key.m521 backup.m521 | tar xzf -</code></pre>
 
       <h4>Pipe Behavior</h4>
       <table>
@@ -698,7 +698,7 @@ mobi521 keygen
 
       <h3>Save to File</h3>
       <pre><code># Write private key to file, print public key to stderr
-mobi521 keygen -o identity.txt
+mobi521 keygen -o identity.m521
 
 # The identity file contains:
 # - A comment with the public key
@@ -795,16 +795,16 @@ mobi521 keygen --card-pdf keycard.pdf --dual-keys</code></pre>
       <h3>Export PDF from Existing Keys</h3>
       <p>Generate key card PDFs from existing identity files using the <code>export-pdf</code> command:</p>
       <pre><code># From identity file
-mobi521 export-pdf --identity identity.txt
+mobi521 export-pdf --identity identity.m521
 
 # From raw key string
 mobi521 export-pdf --identity "MOBI521-SECRET-KEY-..."
 
 # Custom output filename
-mobi521 export-pdf --identity identity.txt -o backup-card.pdf
+mobi521 export-pdf --identity identity.m521 -o backup-card.pdf
 
 # Single card (no duplicate)
-mobi521 export-pdf --identity identity.txt --single-card</code></pre>
+mobi521 export-pdf --identity identity.m521 --single-card</code></pre>
 
       <p>The <code>export-pdf</code> command accepts the same identity formats as <code>decrypt</code> and <code>sign</code>:</p>
       <ul>
@@ -926,19 +926,19 @@ mobi521 encrypt secret.txt -o secret.m521</code></pre>
       <p>Decrypt files or messages using your private key.</p>
 
       <h3>Decrypt a File</h3>
-      <pre><code>mobi521 decrypt -i identity.txt encrypted.m521 -o plaintext.txt</code></pre>
+      <pre><code>mobi521 decrypt -i identity.m521 encrypted.m521 -o plaintext.txt</code></pre>
 
       <h3>Decrypt with Raw Key String</h3>
       <pre><code>mobi521 decrypt -i "MOBI521-SECRET-KEY-..." encrypted.m521 -o plaintext.txt</code></pre>
 
       <h3>Decrypt from Clipboard</h3>
       <pre><code># Copy encrypted text to clipboard, then:
-mobi521 decrypt -i identity.txt
+mobi521 decrypt -i identity.m521
 
 # Decrypted plaintext is now in clipboard</code></pre>
 
       <h3>Decrypt to stdout</h3>
-      <pre><code>mobi521 decrypt -i identity.txt encrypted.m521</code></pre>
+      <pre><code>mobi521 decrypt -i identity.m521 encrypted.m521</code></pre>
 
       <h3>Identity File Format</h3>
       <p>Identity files contain a private key and optionally a comment with the public key:</p>
@@ -1004,7 +1004,7 @@ MOBI521-SECRET-KEY-...</code></pre>
 mobi521 encrypt -r mobi521...
 
 # Decrypt clipboard contents
-mobi521 decrypt -i identity.txt</code></pre>
+mobi521 decrypt -i identity.m521</code></pre>
 
       <h3>Behavior Matrix</h3>
       <table>
@@ -1057,10 +1057,10 @@ echo "message" | mobi521 encrypt -r mobi521...</code></pre>
 
       <h3>Sign a Message</h3>
       <pre><code># Sign a file
-mobi521 sign -i identity.txt document.pdf -o document.sig
+mobi521 sign -i identity.m521 document.pdf -o document.sig
 
 # Sign from stdin
-echo "hello world" | mobi521 sign -i identity.txt &gt; signature.txt</code></pre>
+echo "hello world" | mobi521 sign -i identity.m521 &gt; signature.txt</code></pre>
 
       <h3>Verify a Signature</h3>
       <pre><code># Verify a file signature
@@ -1407,7 +1407,7 @@ mobi521 encrypt -r bob_public_key document.pdf -o document.m521
 # (Signal provides E2EE transport layer)
 
 # Bob receives and decrypts with his private key
-mobi521 decrypt -i bob_identity.txt document.m521 -o document.pdf
+mobi521 decrypt -i bob_identity.m521 document.m521 -o document.pdf
 
 # Result: Two independent encryption layers
 # - Signal Protocol protected the .m521 file in transit
@@ -1575,7 +1575,7 @@ docker build -f Dockerfile.web -t mobi521-web .</code></pre>
 <footer>
   <div class="container">
     <p>
-      mobi-521 v0.5.8 — Built with Rust 🦀 — MIT Licensed
+      mobi-521 v0.6.0 — Built with Rust 🦀 — MIT Licensed
     </p>
     <p style="margin-top: 0.5rem;">
       <a href="https://v1d.dk/mobi-521">Home</a> ·
