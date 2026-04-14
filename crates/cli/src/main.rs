@@ -200,7 +200,7 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             let sec_str = encode_secret_key(&kp.secret);
 
             let content = format!(
-                "# created: mobi521 keygen\n# public key: {}\n{}\n",
+                "# mobi-521 identity file\n# public key: {}\n{}\n",
                 pub_str, sec_str
             );
 
