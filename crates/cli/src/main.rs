@@ -206,9 +206,14 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
             match output {
                 Some(path) => {
-                    fs::write(&path, &content)?;
+                    let actual_path = find_available_path(&path);
+                    fs::write(&actual_path, &content)?;
                     eprintln!("Public key:  {}", pub_str);
-                    eprintln!("Identity written to: {}", path.display());
+                    if actual_path != path {
+                        eprintln!("Identity written to: {} (original existed)", actual_path.display());
+                    } else {
+                        eprintln!("Identity written to: {}", actual_path.display());
+                    }
                 }
                 None => {
                     println!("{}", content.trim());
@@ -394,6 +399,35 @@ fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+/// Find an available path, adding numeric suffix if file exists.
+/// e.g., "key.m521" -> "key_1.m521" -> "key_2.m521" etc.
+fn find_available_path(path: &PathBuf) -> PathBuf {
+    if !path.exists() {
+        return path.clone();
+    }
+
+    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+    let ext = path.extension().and_then(|e| e.to_str());
+    let parent = path.parent();
+
+    for i in 1..1000 {
+        let new_name = match ext {
+            Some(e) => format!("{}_{}.{}", stem, i, e),
+            None => format!("{}_{}", stem, i),
+        };
+        let new_path = match parent {
+            Some(p) => p.join(&new_name),
+            None => PathBuf::from(&new_name),
+        };
+        if !new_path.exists() {
+            return new_path;
+        }
+    }
+
+    // Fallback (unlikely): just return original
+    path.clone()
 }
 
 /// Read all bytes from a file, clipboard, or stdin.
