@@ -1,5 +1,5 @@
 # ── Stage 1: build WASM ────────────────────────────────────────────────────────
-FROM rust:1.85-slim AS wasm-builder
+FROM rust:latest AS wasm-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl \
@@ -15,11 +15,13 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates/core/Cargo.toml  crates/core/Cargo.toml
 COPY crates/cli/Cargo.toml   crates/cli/Cargo.toml
 COPY crates/wasm/Cargo.toml  crates/wasm/Cargo.toml
+COPY crates/python/Cargo.toml crates/python/Cargo.toml
 
-RUN mkdir -p crates/core/src crates/cli/src crates/wasm/src \
+RUN mkdir -p crates/core/src crates/cli/src crates/wasm/src crates/python/src \
  && echo 'pub fn stub() {}'                                                  > crates/core/src/lib.rs \
  && echo 'fn main() {}'                                                      > crates/cli/src/main.rs \
  && printf '#[wasm_bindgen::prelude::wasm_bindgen]\npub fn stub() {}\n'      > crates/wasm/src/lib.rs \
+ && echo 'pub fn stub() {}'                                                  > crates/python/src/lib.rs \
  && wasm-pack build crates/wasm --target web --out-dir ../../web/pkg \
  && rm -rf crates/*/src web/
 

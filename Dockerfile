@@ -1,5 +1,5 @@
 # ── Stage 1: build ────────────────────────────────────────────────────────────
-FROM rust:1.85-slim AS builder
+FROM rust:latest AS builder
 
 WORKDIR /build
 
@@ -8,12 +8,14 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates/core/Cargo.toml  crates/core/Cargo.toml
 COPY crates/cli/Cargo.toml   crates/cli/Cargo.toml
 COPY crates/wasm/Cargo.toml  crates/wasm/Cargo.toml
+COPY crates/python/Cargo.toml crates/python/Cargo.toml
 
 # Stub sources so cargo can resolve the full dependency graph
-RUN mkdir -p crates/core/src crates/cli/src crates/wasm/src \
+RUN mkdir -p crates/core/src crates/cli/src crates/wasm/src crates/python/src \
  && echo 'pub fn stub() {}' > crates/core/src/lib.rs \
  && echo 'fn main() {}'     > crates/cli/src/main.rs \
  && echo 'pub fn stub() {}' > crates/wasm/src/lib.rs \
+ && echo 'pub fn stub() {}' > crates/python/src/lib.rs \
  && cargo build --release -p mobi521 \
  && rm -rf crates/*/src
 
