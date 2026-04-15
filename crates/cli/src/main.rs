@@ -18,7 +18,7 @@ mod server;
 #[command(
     name = "mobi521",
     about = "P-521 ECC encryption (ECDH + ChaCha20-Poly1305)",
-    version = concat!(env!("CARGO_PKG_VERSION"), "\n-------------\ntextdave.com"),
+    version = concat!(env!("CARGO_PKG_VERSION"), "  -  by textdave.com 26-04-15"),
     help_template = "{name} {version}\n{about}\n\n{usage-heading} {usage}\n\n{all-args}"
 )]
 struct Cli {
