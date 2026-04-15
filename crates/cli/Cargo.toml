@@ -38,3 +38,6 @@ optional = true
 
 [dev-dependencies]
 tower = "0.5"
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"

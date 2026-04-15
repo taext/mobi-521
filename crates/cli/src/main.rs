@@ -22,10 +22,6 @@ mod server;
     help_template = "{name} {version}\n{about}\n\n{usage-heading} {usage}\n\n{all-args}"
 )]
 struct Cli {
-    /// Print version
-    #[arg(short = 'v', long = "version", action = clap::ArgAction::Version)]
-    version: (),
-
     #[command(subcommand)]
     command: Option<Command>,
 }
