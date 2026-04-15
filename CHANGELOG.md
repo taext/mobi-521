@@ -2,6 +2,17 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.6.3] - 2026-04-15
+
+### Added
+
+- **Web app binary file encryption** - Upload and encrypt any file type (images, PDFs, ZIPs, etc.)
+  - Files read as binary ArrayBuffer, not text
+  - Preserves original filename: `photo.jpg` → `photo.jpg.m521`
+  - Decrypt restores original filename: `photo.jpg.m521` → `photo.jpg`
+  - 10 MB file size limit with clear UI indication
+  - Text files show preview, binary files show `[Binary file: name — size]`
+
 ## [0.6.2] - 2026-04-15
 
 ### Changed

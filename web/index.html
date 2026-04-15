@@ -430,7 +430,7 @@
   <header>
     <img src="mobi-521-logo-kawaii.png" alt="mobi-521" class="logo-img">
     <p class="tagline">
-      v0.6.2 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
+      v0.6.3 <span>·</span> P-521 ECDH <span>·</span> HKDF-SHA512 <span>·</span> ChaCha20-Poly1305
     </p>
     <p style="text-align: center; margin-top: 0.75rem;">
       <a href="https://github.com/taext/mobi-521/blob/main/README.md" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: none; font-size: 0.82rem; transition: color var(--transition);">
@@ -509,8 +509,8 @@
 
       <div class="field">
         <div class="file-drop" id="enc-drop">
-          <input type="file" id="enc-file" onchange="fileChosen('enc-file','enc-fname','enc-text',true)">
-          Drop file here or click to browse
+          <input type="file" id="enc-file" onchange="encFileChosen()">
+          Drop file here or click to browse <span style="opacity:0.5">(max 10 MB)</span>
         </div>
         <div class="file-name" id="enc-fname"></div>
       </div>
@@ -795,6 +795,9 @@
   /* ── state ────────────────────────────────────────────────────────────── */
   let encBlob = null;
   let decBlob = null;
+  let encFileBytes = null;
+  let encFileName = null;
+  let decFileName = null;
 
   /* ── helpers ──────────────────────────────────────────────────────────── */
   function setStatus(id, msg, isErr) {
@@ -846,11 +849,47 @@
       reader.onload = e => {
         const bytes = new Uint8Array(e.target.result);
         window._decFileBytes = bytes;
-        document.getElementById(textareaId).value = btoa(String.fromCharCode(...bytes));
+        // Store filename for decrypt output (strip .m521 if present)
+        decFileName = file.name.endsWith('.m521') ? file.name.slice(0, -5) : file.name + '.decrypted';
+        document.getElementById(textareaId).value = `[Encrypted file: ${file.name} — ${bytes.length} bytes]`;
       };
       reader.readAsArrayBuffer(file);
     }
   }
+
+  /* ── encrypt file handler (binary) ──────────────────────────────────────── */
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+  window.encFileChosen = function () {
+    const file = document.getElementById('enc-file').files[0];
+    if (!file) return;
+
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      document.getElementById('enc-file').value = '';
+      document.getElementById('enc-fname').textContent = '';
+      setStatus('enc-status', `File too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Max 10 MB — use CLI for larger files.`, true);
+      return;
+    }
+
+    document.getElementById('enc-fname').textContent = file.name;
+    encFileName = file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      encFileBytes = new Uint8Array(e.target.result);
+      // Show file info in textarea (preview for text files, info for binary)
+      if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+        try {
+          document.getElementById('enc-text').value = new TextDecoder('utf-8', { fatal: true }).decode(encFileBytes);
+        } catch {
+          document.getElementById('enc-text').value = `[Binary file: ${file.name} — ${encFileBytes.length} bytes]`;
+        }
+      } else {
+        document.getElementById('enc-text').value = `[Binary file: ${file.name} — ${encFileBytes.length} bytes]`;
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
 
   /* ── QR codes ─────────────────────────────────────────────────────────── */
   function renderQR(divId, text) {
@@ -1126,13 +1165,32 @@
     const pubkey = document.getElementById('enc-pubkey').value.trim();
     const text   = document.getElementById('enc-text').value;
     if (!pubkey) { setStatus('enc-status', 'Paste a recipient public key first.', true); return; }
-    if (!text)   { setStatus('enc-status', 'Nothing to encrypt.', true); return; }
+
+    // Use uploaded file bytes if available, otherwise encode textarea text
+    let dataBytes;
+    let inputSize;
+    if (encFileBytes) {
+      dataBytes = encFileBytes;
+      inputSize = `${encFileName} (${encFileBytes.length} bytes)`;
+    } else {
+      if (!text) { setStatus('enc-status', 'Nothing to encrypt.', true); return; }
+      dataBytes = new TextEncoder().encode(text);
+      inputSize = `${dataBytes.length} bytes`;
+    }
+
     try {
-      const armored = window._wasm.encrypt(pubkey, new TextEncoder().encode(text));
+      const armored = window._wasm.encrypt(pubkey, dataBytes);
       encBlob = new Blob([armored], { type: 'text/plain' });
       document.getElementById('enc-out').value = armored;
       document.getElementById('enc-out-wrap').style.display = 'block';
-      setStatus('enc-status', `Encrypted — ${armored.length} chars.`, false);
+
+      // Update download button with original filename
+      const downloadBtn = document.querySelector('#enc-out-wrap button.primary');
+      const outName = encFileName ? encFileName + '.m521' : 'encrypted.m521';
+      downloadBtn.onclick = () => downloadBlob(encBlob, outName);
+      downloadBtn.textContent = `Download ${outName}`;
+
+      setStatus('enc-status', `Encrypted ${inputSize} → ${armored.length} chars.`, false);
     } catch (e) {
       setStatus('enc-status', String(e), true);
     }
@@ -1144,9 +1202,18 @@
       if (el) el.value = '';
     });
     document.getElementById('enc-fname').textContent = '';
+    document.getElementById('enc-file').value = '';
     document.getElementById('enc-out-wrap').style.display = 'none';
+    // Reset download button to default
+    const downloadBtn = document.querySelector('#enc-out-wrap button.primary');
+    if (downloadBtn) {
+      downloadBtn.textContent = 'Download .m521';
+      downloadBtn.onclick = () => downloadBlob(encBlob, 'encrypted.m521');
+    }
     clearStatus('enc-status');
     encBlob = null;
+    encFileBytes = null;
+    encFileName = null;
   };
 
   /* ── decrypt ──────────────────────────────────────────────────────────── */
@@ -1179,6 +1246,13 @@
       }
       document.getElementById('dec-out').value = display;
       document.getElementById('dec-out-wrap').style.display = 'block';
+
+      // Update download button with original filename
+      const downloadBtn = document.querySelector('#dec-out-wrap button.primary');
+      const outName = decFileName || 'decrypted.bin';
+      downloadBtn.onclick = () => downloadBlob(decBlob, outName);
+      downloadBtn.textContent = `Download ${outName}`;
+
       setStatus('dec-status', `Decrypted — ${ptBytes.length} bytes.`, false);
     } catch (e) {
       setStatus('dec-status', String(e), true);
@@ -1191,9 +1265,17 @@
       if (el) el.value = '';
     });
     document.getElementById('dec-fname').textContent = '';
+    document.getElementById('dec-file').value = '';
     document.getElementById('dec-out-wrap').style.display = 'none';
+    // Reset download button to default
+    const downloadBtn = document.querySelector('#dec-out-wrap button.primary');
+    if (downloadBtn) {
+      downloadBtn.textContent = 'Download';
+      downloadBtn.onclick = () => downloadBlob(decBlob, 'decrypted.bin');
+    }
     clearStatus('dec-status');
     decBlob = null;
+    decFileName = null;
     window._decFileBytes = null;
   };
 
