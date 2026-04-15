@@ -2,6 +2,12 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.6.1] - 2026-04-15
+
+### Changed
+
+- **New kawaii logo** - Updated logo across landing page, webapp, and README
+
 ## [0.6.0] - 2026-04-09
 
 ### Changed

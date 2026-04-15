@@ -1,6 +1,6 @@
-# mobi-521 v0.6.0
+# mobi-521 v0.6.1
 
-<img src="mobi-521-logo-1.png" alt="mobi-521 logo" width="360" align="left" style="margin-right: 16px;">
+<img src="mobi-521-logo-kawaii.png" alt="mobi-521 logo" width="400" align="left" style="margin-right: 16px;">
 
 A file encryption tool inspired by [age](https://age-encryption.org/), rebuilt on top of **P-521 elliptic-curve cryptography** instead of X25519/Ed25519. Not interoperable with age or rage.
 
