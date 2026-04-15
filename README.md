@@ -165,6 +165,71 @@ const signature = sign(privateKey, message);
 verify(publicKey, message, signature); // true or throws
 ```
 
+### Python API
+
+Native Python bindings via PyO3. Build with:
+
+```bash
+cd crates/python
+maturin develop --release
+```
+
+**Core functions** (low-level, mirrors CLI):
+
+```python
+import mobi521
+
+# Generate keypair
+kp = mobi521.keygen()
+print(kp.public_key)   # mobi5211q...
+print(kp.private_key)  # MOBI521-SECRET-KEY1...
+
+# Encrypt/decrypt
+ciphertext = mobi521.encrypt(kp.public_key, b"secret message")
+plaintext = mobi521.decrypt(kp.private_key, ciphertext)
+
+# Sign/verify
+signature = mobi521.sign(kp.private_key, b"document")
+mobi521.verify(kp.public_key, b"document", signature)  # True or raises
+
+# ASCII armor
+armored = mobi521.armor(ciphertext)
+raw = mobi521.dearmor(armored)
+```
+
+**Pythonic wrapper** (`mobi521_ext`) with pathlib-style API and context managers:
+
+```python
+from mobi521_ext import EncryptedPath, open as eopen, encrypt_to, decrypt_from
+
+# Pathlib-style (uses default keys from config)
+p = EncryptedPath("diary.m521")
+p.write_text("Mine hemmeligheder")
+print(p.read_text())
+
+# Context managers
+with eopen("config.m521", "w") as f:
+    f.write("api_key=secret")
+
+with eopen("config.m521", "r") as f:
+    print(f.read())
+
+# One-liners
+encrypt_to("note.m521", "quick encryption")
+content = decrypt_from("note.m521")
+
+# Explicit keys
+p = EncryptedPath("shared.m521", pubkey="mobi5211q...", privkey="MOBI521-SECRET-KEY1...")
+```
+
+**Key discovery** (same as CLI):
+
+| Function | Env var | Config file |
+|----------|---------|-------------|
+| `load_default_pubkey()` | `MOBI521_PUBKEY` | `~/.config/mobi521/default-recipient` |
+| `load_default_privkey()` | `MOBI521_PRIVKEY` | `~/.config/mobi521/default-identity` |
+| `load_identity("work")` | — | `~/.config/mobi521/identities/work` |
+
 ## File format
 
 ```
@@ -193,6 +258,7 @@ Per-chunk nonce = `base_nonce XOR (counter[8..12] || final_flag[7])`.
 crates/core/   — crypto library (also compiled to WASM)
 crates/cli/    — mobi521 binary
 crates/wasm/   — wasm-bindgen exports for the browser UI
+crates/python/ — PyO3 bindings + pythonic wrapper (mobi521_ext)
 web/           — single-page browser UI (keygen / encrypt / decrypt / sign / verify)
 ```
 
