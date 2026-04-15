@@ -4,9 +4,13 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, fenix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -43,6 +47,27 @@
             license = licenses.mit;
             mainProgram = "mobi521";
           };
+        };
+
+        # Nightly toolchain for fuzzing
+        devShells.fuzz = let
+          toolchain = fenix.packages.${system}.complete.withComponents [
+            "cargo"
+            "rustc"
+            "rust-src"
+            "llvm-tools-preview"
+          ];
+        in pkgs.mkShell {
+          buildInputs = [
+            toolchain
+            pkgs.cargo-fuzz
+          ];
+          shellHook = ''
+            export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
+            echo "Fuzz shell (nightly)"
+            echo "  cd crates/core"
+            echo "  cargo fuzz run fuzz_parse_format -- -max_total_time=60"
+          '';
         };
 
         devShells.default = pkgs.mkShell {

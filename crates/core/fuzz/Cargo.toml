@@ -1,0 +1,45 @@
+[package]
+name = "mobi521-core-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+lazy_static = "1.4"
+
+[dependencies.mobi521-core]
+path = ".."
+
+[[bin]]
+name = "fuzz_decrypt"
+path = "fuzz_targets/fuzz_decrypt.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_dearmor"
+path = "fuzz_targets/fuzz_dearmor.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_decode_key"
+path = "fuzz_targets/fuzz_decode_key.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "fuzz_parse_format"
+path = "fuzz_targets/fuzz_parse_format.rs"
+test = false
+doc = false
+bench = false

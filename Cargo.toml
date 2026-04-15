@@ -5,6 +5,7 @@ members = [
     "crates/wasm",
     "crates/python",
 ]
+exclude = ["crates/core/fuzz"]
 default-members = [
     "crates/core",
     "crates/cli",
