@@ -64,6 +64,7 @@
             pkgs.wl-clipboard
             pkgs.libxkbcommon
             pkgs.wayland
+            pkgs.nodejs  # For WASM tests
           ];
           shellHook = ''
             export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
