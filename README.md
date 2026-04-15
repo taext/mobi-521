@@ -8,6 +8,21 @@ A file encryption tool inspired by [age](https://age-encryption.org/), rebuilt o
 
 <br clear="all">
 
+## Contents
+
+- [Crypto stack](#crypto-stack)
+- [Quick Start](#quick-start)
+  - [Installation](#installation)
+  - [Basic Usage](#basic-usage)
+  - [API Server](#api-server)
+  - [WASM API](#wasm-api)
+  - [Python API](#python-api)
+- [File format](#file-format)
+- [Workspace layout](#workspace-layout)
+- [Divergences from the age spec](#divergences-from-the-age-spec)
+- [Documentation](#documentation)
+- [License](#license)
+
 ## Crypto stack
 
 | Layer | Algorithm |
