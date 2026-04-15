@@ -281,7 +281,6 @@ p = EncryptedPath("shared.m521", pubkey="mobi5211q...", privkey="MOBI521-SECRET-
 |----------|---------|-------------|
 | `load_default_pubkey()` | `MOBI521_PUBKEY` | `~/.config/mobi521/default-recipient` |
 | `load_default_privkey()` | `MOBI521_PRIVKEY` | `~/.config/mobi521/default-identity` |
-| `load_identity("work")` | — | `~/.config/mobi521/identities/work` |
 
 ## File format
 
