@@ -24,9 +24,15 @@ classifiers = [
 keywords = ["encryption", "cryptography", "p521", "ecdh", "chacha20"]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
 [project.urls]
 Homepage = "https://m521.app"
 Repository = "https://github.com/danja/mobi-521"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
