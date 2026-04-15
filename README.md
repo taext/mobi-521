@@ -14,6 +14,7 @@ A file encryption tool inspired by [age](https://age-encryption.org/), rebuilt o
 - [Quick Start](#quick-start)
   - [Installation](#installation)
   - [Basic Usage](#basic-usage)
+  - [Default Keys](#default-keys)
   - [API Server](#api-server)
   - [WASM API](#wasm-api)
   - [Python API](#python-api)
@@ -107,6 +108,41 @@ mobi521 verify -p mobi521... -s document.sig document.txt
 - Stdin/stdout piping support
 
 **📚 See the [User Guide](web/userguide.html) for detailed documentation on all features.**
+
+### Default Keys
+
+Most encryption tools require you to specify keys every time. mobi-521 supports **default keys** so you can encrypt without flags:
+
+```bash
+# Instead of this every time:
+mobi521 encrypt -r mobi5211q... diary.txt
+
+# Just do this:
+mobi521 encrypt diary.txt
+```
+
+**How it works:** mobi-521 looks for your default public key in these locations (first match wins):
+
+| Priority | Location | Use case |
+|----------|----------|----------|
+| 1 | `MOBI521_PUBKEY` env var | CI/CD, scripts, temporary override |
+| 2 | `~/.config/mobi521/default-recipient` | Personal default (recommended) |
+
+**Setup (one time):**
+
+```bash
+# Generate a keypair
+mobi521 keygen -o ~/.config/mobi521/identity
+
+# Save public key as default recipient
+grep "^mobi5211" ~/.config/mobi521/identity > ~/.config/mobi521/default-recipient
+```
+
+Now `mobi521 encrypt file.txt` encrypts to yourself automatically.
+
+**Why this design?** Most personal encryption is *self-encryption* — protecting your own files, backups, and notes. The "recipient" is usually future-you. Default keys remove friction for the common case while still allowing explicit `-r` for sharing with others.
+
+**For decryption**, you always need to specify your identity file with `-i` (private keys should never be "default" for security reasons).
 
 ### API Server
 
