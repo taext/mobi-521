@@ -121,4 +121,112 @@ mod tests {
         // mobi-521 verify must reject it (it would verify the tagged version)
         assert!(verify(&pk, message, &raw_b64).is_err());
     }
+
+    // ========================================================================
+    // Signature Security Tests
+    // ========================================================================
+
+    #[test]
+    fn rejects_empty_signature() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        assert!(
+            verify(&pk, b"test", "").is_err(),
+            "empty signature must be rejected"
+        );
+    }
+
+    #[test]
+    fn rejects_truncated_signature() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        let sig = sign(&sk, b"test").unwrap();
+        // Truncate the signature
+        let truncated = &sig[..sig.len() / 2];
+        assert!(
+            verify(&pk, b"test", truncated).is_err(),
+            "truncated signature must be rejected"
+        );
+    }
+
+    #[test]
+    fn rejects_extended_signature() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        let sig = sign(&sk, b"test").unwrap();
+        // Extend the signature with garbage
+        let extended = format!("{}AAAA", sig);
+        assert!(
+            verify(&pk, b"test", &extended).is_err(),
+            "extended signature must be rejected"
+        );
+    }
+
+    #[test]
+    fn rejects_all_zero_signature() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        // 132 zero bytes base64-encoded
+        let zero_sig = Base64::encode_string(&[0u8; 132]);
+        assert!(
+            verify(&pk, b"test", &zero_sig).is_err(),
+            "all-zero signature must be rejected"
+        );
+    }
+
+    #[test]
+    fn signature_malleability_handled_consistently() {
+        // ECDSA has signature malleability: (r, s) and (r, n-s) are both valid
+        // for the same message. This test verifies behavior is consistent
+        // when the s-component is modified.
+        let sk = generate_key();
+        let pk = sk.public_key();
+        let sig = sign(&sk, b"malleability test").unwrap();
+
+        // Original signature should verify
+        assert!(
+            verify(&pk, b"malleability test", &sig).is_ok(),
+            "original signature should verify"
+        );
+
+        // Decode the signature and flip high bit of s-component
+        // This creates an invalid/malleable form
+        let sig_bytes = Base64::decode_vec(&sig).unwrap();
+        assert_eq!(sig_bytes.len(), 132, "P-521 signature should be 132 bytes");
+
+        let mut malleable = sig_bytes.clone();
+        // Flip high bit of s (byte 66 is start of s-component)
+        malleable[66] ^= 0x80;
+        let malleable_b64 = Base64::encode_string(&malleable);
+
+        // The malleable form should either fail validation or be normalized
+        // What matters: no panic, consistent behavior
+        let result = verify(&pk, b"malleability test", &malleable_b64);
+        // Result can be Ok or Err - we just verify it doesn't panic
+        let _ = result;
+    }
+
+    #[test]
+    fn empty_message_can_be_signed() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        let sig = sign(&sk, b"").unwrap();
+        assert!(
+            verify(&pk, b"", &sig).is_ok(),
+            "empty message signature should verify"
+        );
+    }
+
+    #[test]
+    fn large_message_can_be_signed() {
+        let sk = generate_key();
+        let pk = sk.public_key();
+        // 1 MB message
+        let large_message = vec![0xABu8; 1024 * 1024];
+        let sig = sign(&sk, &large_message).unwrap();
+        assert!(
+            verify(&pk, &large_message, &sig).is_ok(),
+            "large message signature should verify"
+        );
+    }
 }

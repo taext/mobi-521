@@ -539,4 +539,142 @@ mod tests {
             "each encryption should have a unique nonce"
         );
     }
+
+    // ============================================================================
+    // STREAM Security Tests - Chunk Manipulation Attacks
+    // ============================================================================
+
+    #[test]
+    fn stream_rejects_reordered_chunks() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        // 3 full chunks = 3 * 64 KiB = 196608 bytes
+        let plaintext = vec![0xABu8; 196608];
+        let ciphertext = encrypt_payload(&file_key, &plaintext);
+
+        // Structure: nonce(12) + chunk0(65536+16) + chunk1(65536+16) + chunk2(65536+16)
+        let chunk_size = 65536 + 16; // plaintext + tag
+        let nonce = &ciphertext[..12];
+        let chunk0 = &ciphertext[12..12 + chunk_size];
+        let chunk1 = &ciphertext[12 + chunk_size..12 + 2 * chunk_size];
+        let chunk2 = &ciphertext[12 + 2 * chunk_size..];
+
+        // Reorder: swap chunk0 and chunk1
+        let mut reordered = Vec::new();
+        reordered.extend_from_slice(nonce);
+        reordered.extend_from_slice(chunk1); // was chunk0
+        reordered.extend_from_slice(chunk0); // was chunk1
+        reordered.extend_from_slice(chunk2);
+
+        assert!(
+            decrypt_payload(&file_key, &reordered).is_err(),
+            "reordered chunks must be rejected"
+        );
+    }
+
+    #[test]
+    fn stream_rejects_removed_middle_chunk() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        // 3 full chunks
+        let plaintext = vec![0xABu8; 196608];
+        let ciphertext = encrypt_payload(&file_key, &plaintext);
+
+        let chunk_size = 65536 + 16;
+        let nonce = &ciphertext[..12];
+        let chunk0 = &ciphertext[12..12 + chunk_size];
+        // skip chunk1
+        let chunk2 = &ciphertext[12 + 2 * chunk_size..];
+
+        // Remove middle chunk
+        let mut truncated = Vec::new();
+        truncated.extend_from_slice(nonce);
+        truncated.extend_from_slice(chunk0);
+        truncated.extend_from_slice(chunk2);
+
+        assert!(
+            decrypt_payload(&file_key, &truncated).is_err(),
+            "removed middle chunk must be rejected"
+        );
+    }
+
+    #[test]
+    fn stream_rejects_duplicated_chunk() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        // 2 full chunks
+        let plaintext = vec![0xABu8; 131072];
+        let ciphertext = encrypt_payload(&file_key, &plaintext);
+
+        let chunk_size = 65536 + 16;
+        let nonce = &ciphertext[..12];
+        let chunk0 = &ciphertext[12..12 + chunk_size];
+        let chunk1 = &ciphertext[12 + chunk_size..];
+
+        // Duplicate chunk0
+        let mut duplicated = Vec::new();
+        duplicated.extend_from_slice(nonce);
+        duplicated.extend_from_slice(chunk0);
+        duplicated.extend_from_slice(chunk0); // duplicate
+        duplicated.extend_from_slice(chunk1);
+
+        assert!(
+            decrypt_payload(&file_key, &duplicated).is_err(),
+            "duplicated chunk must be rejected"
+        );
+    }
+
+    #[test]
+    fn stream_rejects_truncated_final_chunk() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        let plaintext = b"test data for truncation";
+        let ciphertext = encrypt_payload(&file_key, plaintext);
+
+        // Remove last byte (part of Poly1305 tag)
+        let truncated = &ciphertext[..ciphertext.len() - 1];
+
+        assert!(
+            decrypt_payload(&file_key, truncated).is_err(),
+            "truncated final chunk must be rejected"
+        );
+    }
+
+    #[test]
+    fn stream_rejects_appended_garbage() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        let plaintext = b"test data";
+        let mut ciphertext = encrypt_payload(&file_key, plaintext);
+
+        // Append garbage after valid ciphertext
+        ciphertext.extend_from_slice(b"garbage data appended");
+
+        assert!(
+            decrypt_payload(&file_key, &ciphertext).is_err(),
+            "appended garbage must be rejected"
+        );
+    }
+
+    #[test]
+    fn stream_rejects_modified_nonce() {
+        use crate::crypto::{decrypt_payload, encrypt_payload};
+
+        let file_key = [0x42u8; 32];
+        let plaintext = b"test data";
+        let mut ciphertext = encrypt_payload(&file_key, plaintext);
+
+        // Flip a bit in the base nonce
+        ciphertext[0] ^= 0x01;
+
+        assert!(
+            decrypt_payload(&file_key, &ciphertext).is_err(),
+            "modified nonce must cause decryption failure"
+        );
+    }
 }
