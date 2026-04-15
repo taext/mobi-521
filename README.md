@@ -146,6 +146,8 @@ Now `mobi521 encrypt file.txt` encrypts to yourself automatically.
 
 ### API Server
 
+> **Note:** The API server is opt-in at build time. Default builds exclude it for a smaller binary (8.8 MB vs 15 MB). Build with `cargo build --release -p mobi521 --features server` to enable.
+
 Start a local HTTP/HTTPS API server:
 
 ```bash
