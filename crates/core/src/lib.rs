@@ -1,5 +1,7 @@
 pub mod armor;
 pub mod crypto;
+#[cfg(test)]
+mod crypto_vectors;
 pub mod format;
 pub mod keys;
 pub mod signing;

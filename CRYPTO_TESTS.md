@@ -1,0 +1,134 @@
+# Cryptographic Property Tests
+
+This document describes the cryptographic property tests in `crates/core/src/crypto_vectors.rs`.
+
+These tests verify that the underlying cryptographic primitives behave correctly according to their specifications (NIST, RFCs) and that mobi-521's integration of these primitives maintains expected security properties.
+
+## Test Summary
+
+| Category | Tests | Purpose |
+|----------|-------|---------|
+| ChaCha20-Poly1305 | 4 | AEAD cipher correctness |
+| HKDF-SHA512 | 5 | Key derivation properties |
+| P-521 ECDH | 4 | Elliptic curve Diffie-Hellman |
+| ECDSA-P521 | 5 | Digital signatures |
+| mobi-521 Integration | 6 | End-to-end crypto properties |
+| **Total** | **24** | |
+
+---
+
+## ChaCha20-Poly1305 Tests
+
+Reference: [RFC 8439](https://datatracker.ietf.org/doc/html/rfc8439)
+
+| Test | What it verifies |
+|------|------------------|
+| `chacha20_poly1305_rfc8439_test_vector` | Encrypt/decrypt roundtrip using RFC 8439 key and nonce |
+| `chacha20_poly1305_empty_message` | Empty plaintext produces only 16-byte tag |
+| `chacha20_poly1305_tag_length` | Ciphertext = plaintext + 16 bytes (Poly1305 tag) |
+| `chacha20_poly1305_bit_flip_detection` | Any single bit flip causes authentication failure |
+
+---
+
+## HKDF-SHA512 Tests
+
+Reference: [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869)
+
+| Test | What it verifies |
+|------|------------------|
+| `hkdf_sha512_basic_test_vector` | HKDF output is deterministic |
+| `hkdf_sha512_different_salts_produce_different_keys` | Salt provides domain separation |
+| `hkdf_sha512_different_info_produces_different_keys` | Info parameter provides context separation |
+| `hkdf_sha512_no_salt_uses_zero_salt` | `None` salt equivalent to zero-filled salt |
+| `hkdf_sha512_max_output_length` | Max output = 255 × 64 = 16320 bytes |
+
+---
+
+## P-521 ECDH Tests
+
+Reference: [NIST FIPS 186-4](https://csrc.nist.gov/publications/detail/fips/186/4/final), [SEC 2](https://www.secg.org/sec2-v2.pdf)
+
+| Test | What it verifies |
+|------|------------------|
+| `p521_ecdh_shared_secret_is_symmetric` | `DH(a, B) = DH(b, A)` — fundamental ECDH property |
+| `p521_ecdh_shared_secret_length` | Shared secret is 66 bytes (521 bits) |
+| `p521_ecdh_different_keypairs_produce_different_secrets` | Different recipients → different shared secrets |
+| `p521_public_key_compressed_length` | Compressed: 67 bytes, uncompressed: 133 bytes |
+
+---
+
+## ECDSA-P521-SHA512 Tests
+
+Reference: [NIST FIPS 186-4](https://csrc.nist.gov/publications/detail/fips/186/4/final), [RFC 6979](https://datatracker.ietf.org/doc/html/rfc6979)
+
+| Test | What it verifies |
+|------|------------------|
+| `ecdsa_p521_signature_length` | Signature is 132 bytes (r: 66 + s: 66) |
+| `ecdsa_p521_hedged_signatures_differ` | Hedged nonces add randomness (fault attack protection) |
+| `ecdsa_p521_different_messages_different_signatures` | Different messages → different signatures |
+| `ecdsa_p521_verification_fails_on_wrong_message` | Tampering detection works |
+| `ecdsa_p521_verification_fails_on_wrong_key` | Wrong key cannot verify |
+
+### Note on Hedged Signatures
+
+The p521 crate uses **hedged signatures** (RFC 6979 + additional randomness) rather than purely deterministic signatures. This is more secure as it protects against fault injection attacks that could leak the private key if the same nonce is ever reused.
+
+---
+
+## mobi-521 Integration Tests
+
+These tests verify mobi-521's specific crypto construction.
+
+| Test | What it verifies |
+|------|------------------|
+| `mobi521_wrap_unwrap_preserves_file_key` | Key wrapping roundtrip works |
+| `mobi521_wrapped_key_structure` | Ephemeral pubkey: 67 bytes, encrypted file key: 48 bytes |
+| `mobi521_different_recipients_produce_different_ciphertexts` | Fresh ephemeral key per encryption |
+| `mobi521_same_recipient_different_ephemeral_keys` | Each wrap uses new ephemeral keypair |
+| `mobi521_stream_chunk_boundaries` | STREAM works at 0, 64Ki-1, 64Ki, 64Ki+1 byte boundaries |
+| `mobi521_stream_nonce_uniqueness` | Each encryption has unique base nonce |
+
+### mobi-521 Crypto Construction
+
+```
+File Key (32 bytes random)
+    │
+    ├─► wrap_file_key()
+    │       ephemeral = P521::random()
+    │       shared = ECDH(ephemeral, recipient_pub)
+    │       salt = ephemeral_pub || recipient_pub
+    │       wrap_key = HKDF-SHA512(shared, salt, "m521.app/encrypted/v3")
+    │       encrypted_file_key = ChaCha20-Poly1305(wrap_key, nonce=0, file_key)
+    │
+    └─► encrypt_payload()
+            base_nonce = random(12 bytes)
+            for each 64 KiB chunk:
+                chunk_nonce = base_nonce XOR counter XOR is_final
+                ciphertext += ChaCha20-Poly1305(file_key, chunk_nonce, chunk)
+```
+
+---
+
+## Running the Tests
+
+```bash
+# Run only crypto property tests
+cargo test -p mobi521-core crypto_vectors
+
+# Run all core tests
+cargo test -p mobi521-core
+
+# Run with output
+cargo test -p mobi521-core crypto_vectors -- --nocapture
+```
+
+---
+
+## Security Properties Verified
+
+1. **Confidentiality**: ChaCha20 stream cipher
+2. **Integrity**: Poly1305 MAC (16-byte tag)
+3. **Authenticity**: ECDSA-P521-SHA512 signatures
+4. **Forward secrecy**: Fresh ephemeral key per encryption
+5. **Key separation**: HKDF with unique salt per message
+6. **Large file support**: STREAM construction with 64 KiB chunks
