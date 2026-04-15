@@ -2,6 +2,15 @@
 
 All notable changes to mobi-521 will be documented in this file.
 
+## [0.6.2] - 2026-04-15
+
+### Changed
+
+- **Server feature no longer default** - HTTP server (`serve` command) now requires explicit opt-in
+  - Default build: 8.7 MB (was 15 MB)
+  - Build with server: `cargo build --release --features server`
+  - 42% smaller binary for users who only need CLI encryption
+
 ## [0.6.1] - 2026-04-15
 
 ### Changed

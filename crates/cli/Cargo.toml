@@ -8,7 +8,7 @@ name = "mobi521"
 path = "src/main.rs"
 
 [features]
-default = ["qr-png", "pdf", "server"]
+default = ["qr-png", "pdf"]
 qr-png = ["qrcode/image", "image"]
 pdf = ["printpdf", "image"]
 server = ["dep:axum", "dep:axum-server", "dep:tokio"]
