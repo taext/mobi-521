@@ -132,7 +132,10 @@ pub fn unwrap_file_key(
 /// ```
 /// Each non-final chunk is `CHUNK_SIZE + 16` bytes; the final chunk is
 /// `plaintext_remainder + 16` bytes (minimum 16 for an empty message).
-pub fn encrypt_payload(file_key: &[u8; FILE_KEY_LEN], plaintext: &[u8]) -> Vec<u8> {
+///
+/// # Errors
+/// Returns `Error::Encryption` if the plaintext exceeds 256 TiB (u32::MAX chunks).
+pub fn encrypt_payload(file_key: &[u8; FILE_KEY_LEN], plaintext: &[u8]) -> Result<Vec<u8>, Error> {
     let cipher = ChaCha20Poly1305::new(Key::from_slice(file_key));
 
     let mut base_nonce = [0u8; 12];
@@ -150,7 +153,7 @@ pub fn encrypt_payload(file_key: &[u8; FILE_KEY_LEN], plaintext: &[u8]) -> Vec<u
             .encrypt(&nonce, &[][..])
             .expect("ChaCha20-Poly1305 encrypt cannot fail");
         out.extend_from_slice(&ct);
-        return out;
+        return Ok(out);
     }
 
     let mut counter: u32 = 0;
@@ -164,10 +167,12 @@ pub fn encrypt_payload(file_key: &[u8; FILE_KEY_LEN], plaintext: &[u8]) -> Vec<u
             .expect("ChaCha20-Poly1305 encrypt cannot fail");
         out.extend_from_slice(&ct);
         pos = end;
-        counter = counter.checked_add(1).expect("chunk counter overflow (>256 TiB input)");
+        counter = counter.checked_add(1).ok_or_else(|| {
+            Error::Encryption("plaintext too large: exceeds 256 TiB limit".into())
+        })?;
     }
 
-    out
+    Ok(out)
 }
 
 /// Decrypt a STREAM payload produced by `encrypt_payload`.
@@ -214,7 +219,9 @@ pub fn decrypt_payload(
         if is_final {
             break;
         }
-        counter = counter.checked_add(1).expect("chunk counter overflow");
+        counter = counter.checked_add(1).ok_or_else(|| {
+            Error::Decryption("ciphertext too large: exceeds 256 TiB limit".into())
+        })?;
     }
 
     Ok(plaintext)

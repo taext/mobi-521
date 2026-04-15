@@ -46,7 +46,7 @@ pub fn encrypt(recipient_pubkey: &str, plaintext: &[u8]) -> Result<Vec<u8>, Erro
     let wrapped = crypto::wrap_file_key(&*file_key, &recipient);
 
     // Encrypt the payload
-    let payload = crypto::encrypt_payload(&*file_key, plaintext);
+    let payload = crypto::encrypt_payload(&*file_key, plaintext)?;
 
     // Serialise to the age-512 format
     let mut out = Vec::new();

@@ -511,7 +511,7 @@ mod tests {
         // Test at exact chunk boundaries (64 KiB = 65536 bytes)
         for size in [0, 1, 65535, 65536, 65537, 131072, 131073] {
             let plaintext = vec![0xABu8; size];
-            let ciphertext = encrypt_payload(&file_key, &plaintext);
+            let ciphertext = encrypt_payload(&file_key, &plaintext).unwrap();
             let decrypted = decrypt_payload(&file_key, &ciphertext).unwrap();
             assert_eq!(
                 plaintext, decrypted,
@@ -529,8 +529,8 @@ mod tests {
         let plaintext = b"test";
 
         // Each encryption should have a unique base nonce
-        let ct1 = encrypt_payload(&file_key, plaintext);
-        let ct2 = encrypt_payload(&file_key, plaintext);
+        let ct1 = encrypt_payload(&file_key, plaintext).unwrap();
+        let ct2 = encrypt_payload(&file_key, plaintext).unwrap();
 
         // First 12 bytes are the base nonce
         assert_ne!(
@@ -551,7 +551,7 @@ mod tests {
         let file_key = [0x42u8; 32];
         // 3 full chunks = 3 * 64 KiB = 196608 bytes
         let plaintext = vec![0xABu8; 196608];
-        let ciphertext = encrypt_payload(&file_key, &plaintext);
+        let ciphertext = encrypt_payload(&file_key, &plaintext).unwrap();
 
         // Structure: nonce(12) + chunk0(65536+16) + chunk1(65536+16) + chunk2(65536+16)
         let chunk_size = 65536 + 16; // plaintext + tag
@@ -580,7 +580,7 @@ mod tests {
         let file_key = [0x42u8; 32];
         // 3 full chunks
         let plaintext = vec![0xABu8; 196608];
-        let ciphertext = encrypt_payload(&file_key, &plaintext);
+        let ciphertext = encrypt_payload(&file_key, &plaintext).unwrap();
 
         let chunk_size = 65536 + 16;
         let nonce = &ciphertext[..12];
@@ -607,7 +607,7 @@ mod tests {
         let file_key = [0x42u8; 32];
         // 2 full chunks
         let plaintext = vec![0xABu8; 131072];
-        let ciphertext = encrypt_payload(&file_key, &plaintext);
+        let ciphertext = encrypt_payload(&file_key, &plaintext).unwrap();
 
         let chunk_size = 65536 + 16;
         let nonce = &ciphertext[..12];
@@ -633,7 +633,7 @@ mod tests {
 
         let file_key = [0x42u8; 32];
         let plaintext = b"test data for truncation";
-        let ciphertext = encrypt_payload(&file_key, plaintext);
+        let ciphertext = encrypt_payload(&file_key, plaintext).unwrap();
 
         // Remove last byte (part of Poly1305 tag)
         let truncated = &ciphertext[..ciphertext.len() - 1];
@@ -650,7 +650,7 @@ mod tests {
 
         let file_key = [0x42u8; 32];
         let plaintext = b"test data";
-        let mut ciphertext = encrypt_payload(&file_key, plaintext);
+        let mut ciphertext = encrypt_payload(&file_key, plaintext).unwrap();
 
         // Append garbage after valid ciphertext
         ciphertext.extend_from_slice(b"garbage data appended");
@@ -667,7 +667,7 @@ mod tests {
 
         let file_key = [0x42u8; 32];
         let plaintext = b"test data";
-        let mut ciphertext = encrypt_payload(&file_key, plaintext);
+        let mut ciphertext = encrypt_payload(&file_key, plaintext).unwrap();
 
         // Flip a bit in the base nonce
         ciphertext[0] ^= 0x01;

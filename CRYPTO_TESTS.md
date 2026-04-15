@@ -183,6 +183,7 @@ These tests verify that the STREAM construction properly rejects manipulated cip
 - Chunks cannot be reordered (wrong counter)
 - Final chunk is tagged (is_final bit)
 - Truncation is detected (no valid final chunk)
+- Counter overflow returns `Error::Encryption` (not panic) for >256 TiB input
 
 ---
 
