@@ -708,3 +708,192 @@ complete -c mobi521 -n "__fish_seen_subcommand_from completions" -s h -l help -d
 # help subcommand
 complete -c mobi521 -n "__fish_seen_subcommand_from help" -a "keygen encrypt decrypt sign verify export-pdf completions" -d "Subcommand"
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    // ========================================================================
+    // find_available_path tests
+    // ========================================================================
+
+    #[test]
+    fn find_available_path_returns_original_if_not_exists() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("nonexistent.txt");
+
+        let result = find_available_path(&path);
+        assert_eq!(result, path);
+    }
+
+    #[test]
+    fn find_available_path_increments_if_exists() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("file.txt");
+
+        // Create the original file
+        fs::write(&path, "original").unwrap();
+
+        let result = find_available_path(&path);
+        assert_eq!(result, tmp.path().join("file_1.txt"));
+    }
+
+    #[test]
+    fn find_available_path_increments_multiple_times() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("file.txt");
+
+        // Create file.txt, file_1.txt, file_2.txt
+        fs::write(&path, "").unwrap();
+        fs::write(tmp.path().join("file_1.txt"), "").unwrap();
+        fs::write(tmp.path().join("file_2.txt"), "").unwrap();
+
+        let result = find_available_path(&path);
+        assert_eq!(result, tmp.path().join("file_3.txt"));
+    }
+
+    #[test]
+    fn find_available_path_handles_no_extension() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("myfile");
+
+        fs::write(&path, "").unwrap();
+
+        let result = find_available_path(&path);
+        assert_eq!(result, tmp.path().join("myfile_1"));
+    }
+
+    #[test]
+    fn find_available_path_handles_dotfiles() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join(".hidden");
+
+        fs::write(&path, "").unwrap();
+
+        let result = find_available_path(&path);
+        // .hidden has no stem, so it becomes "_1" with no extension
+        assert!(result.to_string_lossy().contains("_1"));
+    }
+
+    // ========================================================================
+    // resolve_identity tests
+    // ========================================================================
+
+    #[test]
+    fn resolve_identity_returns_raw_key_if_not_file() {
+        let key = "MOBI521-SECRET-KEY1notafile";
+        let result = resolve_identity(key).unwrap();
+        assert_eq!(result, key);
+    }
+
+    #[test]
+    fn resolve_identity_reads_key_from_file() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("identity");
+
+        let content = "# comment\n# another comment\nMOBI521-SECRET-KEY1abc123\n";
+        fs::write(&path, content).unwrap();
+
+        let result = resolve_identity(path.to_str().unwrap()).unwrap();
+        assert_eq!(result, "MOBI521-SECRET-KEY1abc123");
+    }
+
+    #[test]
+    fn resolve_identity_skips_comments_and_blank_lines() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("identity");
+
+        let content = "# mobi-521 identity file\n\n# public key: mobi5211xxx\n\nMOBI521-SECRET-KEY1abc\n";
+        fs::write(&path, content).unwrap();
+
+        let result = resolve_identity(path.to_str().unwrap()).unwrap();
+        assert_eq!(result, "MOBI521-SECRET-KEY1abc");
+    }
+
+    #[test]
+    fn resolve_identity_fails_on_empty_file() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("empty");
+
+        fs::write(&path, "# only comments\n# no key\n").unwrap();
+
+        let result = resolve_identity(path.to_str().unwrap());
+        assert!(result.is_err());
+    }
+
+    // ========================================================================
+    // resolve_sig tests
+    // ========================================================================
+
+    #[test]
+    fn resolve_sig_returns_raw_string_if_not_file() {
+        let sig = "base64signaturestring==";
+        let result = resolve_sig(sig).unwrap();
+        assert_eq!(result, sig);
+    }
+
+    #[test]
+    fn resolve_sig_reads_from_file() {
+        let tmp = TempDir::new().unwrap();
+        let path = tmp.path().join("signature.sig");
+
+        fs::write(&path, "  base64sig==  \n").unwrap();
+
+        let result = resolve_sig(path.to_str().unwrap()).unwrap();
+        assert_eq!(result, "base64sig==");
+    }
+
+    // ========================================================================
+    // default_recipient tests
+    // ========================================================================
+
+    #[test]
+    fn default_recipient_uses_xdg_config_home() {
+        let tmp = TempDir::new().unwrap();
+        let config_dir = tmp.path().join("mobi521");
+        fs::create_dir_all(&config_dir).unwrap();
+
+        let pubkey = "mobi5211qtest";
+        fs::write(config_dir.join("default-recipient"), pubkey).unwrap();
+
+        // Set XDG_CONFIG_HOME temporarily
+        std::env::set_var("XDG_CONFIG_HOME", tmp.path());
+        let result = default_recipient();
+        std::env::remove_var("XDG_CONFIG_HOME");
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), pubkey);
+    }
+
+    #[test]
+    fn default_recipient_fails_if_file_missing() {
+        let tmp = TempDir::new().unwrap();
+
+        std::env::set_var("XDG_CONFIG_HOME", tmp.path());
+        let result = default_recipient();
+        std::env::remove_var("XDG_CONFIG_HOME");
+
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("no --recipient given"));
+    }
+
+    #[test]
+    fn default_recipient_fails_if_file_empty() {
+        let tmp = TempDir::new().unwrap();
+        let config_dir = tmp.path().join("mobi521");
+        fs::create_dir_all(&config_dir).unwrap();
+
+        fs::write(config_dir.join("default-recipient"), "   \n").unwrap();
+
+        std::env::set_var("XDG_CONFIG_HOME", tmp.path());
+        let result = default_recipient();
+        std::env::remove_var("XDG_CONFIG_HOME");
+
+        assert!(result.is_err());
+        let err = result.unwrap_err().to_string();
+        assert!(err.contains("empty"));
+    }
+}
