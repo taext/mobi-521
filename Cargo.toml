@@ -5,6 +5,10 @@ members = [
     "crates/wasm",
     "crates/python",
 ]
+default-members = [
+    "crates/core",
+    "crates/cli",
+]
 resolver = "2"
 
 [workspace.package]
