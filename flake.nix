@@ -56,24 +56,33 @@
             pkgs.rustfmt
             pkgs.clippy
             pkgs.wasm-pack
+            pkgs.maturin
             pkgs.lld
             pkgs.gcc
             pkgs.openssl
-            pkgs.python3
+            (pkgs.python3.withPackages (ps: [ ps.pip ]))
             pkgs.wl-clipboard
             pkgs.libxkbcommon
             pkgs.wayland
           ];
           shellHook = ''
-            export LD_LIBRARY_PATH="${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
+            export LD_LIBRARY_PATH="${pkgs.stdenv.cc.cc.lib}/lib:${pkgs.wayland}/lib:${pkgs.libxkbcommon}/lib:$LD_LIBRARY_PATH"
 
             if [ -d ./target/release ]; then
               export PATH="$PWD/target/release:$PATH"
             fi
 
+            # Python venv for maturin
+            if [ ! -d .venv ]; then
+              echo "Creating Python venv..."
+              python -m venv .venv
+            fi
+            source .venv/bin/activate
+
             echo "mobi-521 dev shell"
             echo "  cargo build --release -p mobi521"
             echo "  wasm-pack build crates/wasm --target web --out-dir ../../web/pkg"
+            echo "  cd crates/python && maturin develop --release"
           '';
         };
       });
