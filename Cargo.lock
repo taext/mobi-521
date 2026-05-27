@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "arboard",
  "assert_cmd",
@@ -1534,7 +1534,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-core"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "base64ct",
  "bech32",
@@ -1553,7 +1553,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-python"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "mobi521-core",
  "pyo3",
@@ -1561,7 +1561,7 @@ dependencies = [
 
 [[package]]
 name = "mobi521-wasm"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "console_error_panic_hook",
  "getrandom 0.2.17",
